@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocab Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0f;--surface:#13131a;--surface2:#1c1c27;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#f0eeea;--muted:#6b6a72;--accent:#c8f04a;--accent2:#8b5cf6;--correct:#4ade80;--wrong:#f87171;--correct-bg:rgba(74,222,128,0.1);--wrong-bg:rgba(248,113,113,0.1);--correct-border:rgba(74,222,128,0.35);--wrong-border:rgba(248,113,113,0.35)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-20vh;left:50%;transform:translateX(-50%);width:70vw;height:50vh;background:radial-gradient(ellipse,rgba(139,92,246,0.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;gap:1rem}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,8vw,4rem);letter-spacing:0.03em;line-height:1;color:var(--text)}
+.logo span{color:var(--accent)}
+.mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:4px;gap:2px}
+.mode-btn{padding:7px 18px;border:none;border-radius:36px;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.04em;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.mode-btn.active{background:var(--accent);color:#0b0b0f;font-weight:500}
+.lesson-row{display:flex;gap:8px;margin-bottom:1.75rem;flex-wrap:wrap}
+.lesson-pill{padding:6px 14px;border:1px solid var(--border);border-radius:30px;background:var(--surface);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap}
+.lesson-pill:hover{border-color:var(--border2);color:var(--text)}
+.lesson-pill.active{border-color:var(--accent);background:rgba(200,240,74,0.08);color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center}
+.stat-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:300;color:var(--text);font-variant-numeric:tabular-nums}
+.progress-bar{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:1.75rem;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(200,240,74,0.4)}
+.qcard{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.lesson-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:1.1rem}
+.question{font-size:15px;color:var(--muted);margin-bottom:0.4rem;font-weight:300}
+.question-word{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,7vw,3.2rem);letter-spacing:0.04em;color:var(--text);line-height:1.1;margin-bottom:1.75rem}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{padding:14px 18px;border:1px solid var(--border);border-radius:12px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);text-align:left;transition:all .15s;line-height:1.55;position:relative;overflow:hidden}
+.opt::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(200,240,74,0.06),transparent);opacity:0;transition:opacity .15s}
+.opt:hover:not(.disabled)::before{opacity:1}
+.opt:hover:not(.disabled){border-color:var(--border2)}
+.opt.correct{border-color:var(--correct-border);background:var(--correct-bg);color:var(--correct)}
+.opt.wrong{border-color:var(--wrong-border);background:var(--wrong-bg);color:var(--wrong)}
+.opt.disabled{cursor:default}
+.opt-letter{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;color:var(--muted);margin-right:10px;min-width:16px}
+.opt.correct .opt-letter{color:var(--correct)}
+.opt.wrong .opt-letter{color:var(--wrong)}
+.next-btn{width:100%;margin-top:14px;padding:13px;border:1px solid var(--border2);border-radius:12px;background:transparent;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;animation:fadeUp .25s .1s ease both}
+.next-btn:hover{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
+.result{text-align:center;padding:2.5rem 1.5rem;animation:fadeUp .35s ease both}
+.big-score{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,20vw,9rem);letter-spacing:0.02em;line-height:1;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem}
+.result-pct{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.result-msg{font-size:16px;color:var(--text);font-weight:300;line-height:1.7;max-width:400px;margin:0 auto 2rem}
+.result-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.rbtn{padding:11px 24px;border:1px solid var(--border2);border-radius:30px;background:transparent;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.rbtn:hover{border-color:var(--accent);color:var(--accent)}
+.rbtn.primary{background:var(--accent);border-color:var(--accent);color:#0b0b0f}
+.rbtn.primary:hover{background:#d4f55a}
+.review-section{text-align:left;margin-top:1.5rem}
+.review-header{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.review-item{padding:12px 0;border-bottom:1px solid var(--border)}
+.review-word{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.04em;color:var(--wrong);margin-bottom:3px}
+.review-def{font-size:13px;color:var(--muted);line-height:1.6}
+.flash-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;animation:fadeUp .3s ease both;text-align:center;position:relative;overflow:hidden;margin-bottom:1rem}
+.flash-card::after{content:'TAP TO FLIP';position:absolute;bottom:14px;right:18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--muted);opacity:0.5}
+.flash-card:hover{border-color:var(--border2)}
+.flash-card.flipped{background:var(--surface2);border-color:rgba(139,92,246,0.25)}
+.flash-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.flash-word{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,10vw,4.5rem);letter-spacing:0.05em;line-height:1;color:var(--text)}
+.flash-def{font-size:16px;font-weight:300;color:var(--text);line-height:1.7;max-width:480px}
+.flash-lesson{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;color:var(--accent2);margin-top:1rem}
+.flash-nav{display:flex;gap:10px;justify-content:center}
+.fnav-btn{flex:1;max-width:140px;padding:11px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.fnav-btn:hover{border-color:var(--border2);background:var(--surface2)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">VOCAB<span>.</span>QUIZ</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-quiz" onclick="setMode('quiz')">Quiz</button>
+      <button class="mode-btn" id="mode-flash" onclick="setMode('flash')">Cards</button>
+    </div>
+  </div>
+  <div class="lesson-row" id="lesson-row"></div>
+  <div id="app"></div>
+</div>
+<script>
+const LESSON_NAMES={1:'Language',2:'Possibility',3:'Change',4:'Mind & Knowledge',5:'Avoidance',6:'Sequence',7:'Criticism',8:'Responsibility',9:'Behavior',10:'Skill',11:'Commands',12:'Size',13:'Imitation',14:'Pairs',15:'Reversal'};
+const ALL=[
+  {w:"annotation",d:"A critical or explanatory note",l:1},
+  {w:"appellation",d:"A name, title, or designation",l:1},
+  {w:"eponym",d:"A person whose name is the source of the name of something",l:1},
+  {w:"linguistics",d:"The study of the nature, structure, and variation of language",l:1},
+  {w:"malapropism",d:"Ridiculous misuse of a word by confusing it with one of similar sound",l:1},
+  {w:"neologism",d:"A new word, expression, or usage",l:1},
+  {w:"parlance",d:"A particular manner of speaking",l:1},
+  {w:"patois",d:"A regional dialect, especially a nonstandard one with no written tradition",l:1},
+  {w:"polyglot",d:"A person who speaks several languages; also: using several languages",l:1},
+  {w:"vulgar",d:"Of or related to the language of the common people; crude, indecent",l:1},
+  {w:"contingent",d:"Conditional; dependent on other things; also: a representative group within a larger group",l:2},
+  {w:"eventuality",d:"Something that may occur; a possibility",l:2},
+  {w:"implausible",d:"Difficult to believe; not likely or credible",l:2},
+  {w:"inconceivable",d:"Impossible to comprehend or fully grasp; so unlikely as to seem impossible",l:2},
+  {w:"in vain",d:"Without success; completely ineffective",l:2},
+  {w:"perchance",d:"Perhaps; possibly",l:2},
+  {w:"preposterous",d:"Absurd; contrary to nature, reason, or common sense",l:2},
+  {w:"proclivity",d:"A natural inclination; a tendency",l:2},
+  {w:"prone",d:"Having a tendency; inclined; likely to do or have something",l:2},
+  {w:"theoretical",d:"Restricted to ideas; abstract or unproven",l:2},
+  {w:"evolve",d:"To develop or achieve gradually",l:3},
+  {w:"immutable",d:"Unchangeable; not subject or susceptible to change",l:3},
+  {w:"inveterate",d:"Firmly established and having existed for a long time; deep-rooted; habitual",l:3},
+  {w:"malleable",d:"Capable of being shaped or formed; easily controlled or influenced",l:3},
+  {w:"metamorphosis",d:"A marked change in form, character, or function; a transformation",l:3},
+  {w:"modulate",d:"To adjust or adapt to a certain level or proportion; to regulate",l:3},
+  {w:"protean",d:"Readily taking on different forms, characteristics, or meanings",l:3},
+  {w:"sporadic",d:"Scattered; occurring at irregular intervals; isolated; infrequent",l:3},
+  {w:"transmute",d:"To change from one form to another; to transform",l:3},
+  {w:"volatile",d:"Tending to vary often; inconstant; tending toward violence; explosive",l:3},
+  {w:"abstruse",d:"Difficult to understand",l:4},
+  {w:"acumen",d:"Quickness and keenness of insight or judgment",l:4},
+  {w:"ascertain",d:"To discover or determine with certainty through examination or experimentation",l:4},
+  {w:"cerebral",d:"Of or relating to the brain; appealing to the intellect",l:4},
+  {w:"faculty",d:"A natural power or ability; a division of a university or group of teachers",l:4},
+  {w:"obfuscate",d:"To make difficult to understand; to darken or make dim",l:4},
+  {w:"ruminate",d:"To think deeply about; to turn a matter over and over in one's mind",l:4},
+  {w:"stymie",d:"To prevent from making progress; to frustrate or thwart efforts",l:4},
+  {w:"surmise",d:"To guess; to draw a conclusion without sufficient evidence",l:4},
+  {w:"tenet",d:"A principle or belief held by a person or organization",l:4},
+  {w:"abeyance",d:"Suspension; a condition of being temporarily set aside",l:5},
+  {w:"abstemious",d:"Eating and drinking little or in moderation; restricted to bare necessities",l:5},
+  {w:"circumvent",d:"To get around by clever maneuvering; to avoid by going around",l:5},
+  {w:"elude",d:"To escape from by daring or cleverness; to escape the grasp or understanding of",l:5},
+  {w:"eschew",d:"To avoid, especially on moral or practical grounds; to abstain from",l:5},
+  {w:"evasion",d:"The act of escaping or avoiding by cleverness or deceit",l:5},
+  {w:"malinger",d:"To pretend to be ill or injured in order to avoid duty or work",l:5},
+  {w:"oblique",d:"Indirect; intentionally vague or ambiguous; misleading, devious, or dishonest",l:5},
+  {w:"shirk",d:"To neglect, put off, or avoid a duty or responsibility",l:5},
+  {w:"shun",d:"To willfully ignore; to stay away from",l:5},
+  {w:"converge",d:"To come together at the same point from different directions; to meet",l:6},
+  {w:"crux",d:"The main, central, or critical point or feature",l:6},
+  {w:"degradation",d:"A decline to a lower condition, quality, or level",l:6},
+  {w:"initiate",d:"To take the first steps in a process; to formally admit someone into an organization through a ritual",l:6},
+  {w:"penultimate",d:"Second from the last; next to last",l:6},
+  {w:"pivotal",d:"Being of vital importance; crucial",l:6},
+  {w:"sequel",d:"A continuation; something that follows; the next installment of something",l:6},
+  {w:"supersede",d:"To replace; to take the place of",l:6},
+  {w:"tangential",d:"Superficially relevant; only slightly connected",l:6},
+  {w:"terminate",d:"To bring to an end or halt",l:6},
+  {w:"aspersions",d:"Attacks on a person's character or honesty; damaging or unfavorable remarks",l:7},
+  {w:"compunction",d:"A strong uneasiness caused by a sense of guilt; a sting of conscience",l:7},
+  {w:"derision",d:"Hateful or mocking laughter; ridicule",l:7},
+  {w:"disapprobation",d:"Moral disapproval",l:7},
+  {w:"ostracize",d:"To banish or exclude from a group; to shun",l:7},
+  {w:"rebuke",d:"To criticize sharply; also: strong criticism",l:7},
+  {w:"revulsion",d:"A sudden, intense feeling of disgust",l:7},
+  {w:"scurrilous",d:"Vulgar, coarse, or abusive in expression; foul-mouthed",l:7},
+  {w:"spurn",d:"To reject scornfully",l:7},
+  {w:"vitriolic",d:"Intensely and bitterly harsh; stinging",l:7},
+  {w:"accountable",d:"Responsible; required to answer for one's actions; explainable",l:8},
+  {w:"assiduous",d:"Giving constant attention; hard-working; conscientious",l:8},
+  {w:"default",d:"A situation that remains in effect unless specifically changed; failure to meet an obligation",l:8},
+  {w:"feckless",d:"Ineffective; feeble; useless; careless and irresponsible",l:8},
+  {w:"incumbent",d:"Imposed as a duty; currently holding a position or office",l:8},
+  {w:"liability",d:"A legal responsibility or obligation; something that holds one back",l:8},
+  {w:"mandatory",d:"Required or commanded by authority",l:8},
+  {w:"negligence",d:"Lack of proper care or attention",l:8},
+  {w:"onerous",d:"Difficult to bear, carry, or do; troublesome; burdensome",l:8},
+  {w:"remiss",d:"Lax or careless in attending to duty",l:8},
+  {w:"acquiesce",d:"To agree or accept passively or without protest",l:9},
+  {w:"adamant",d:"Stubbornly determined; not swayed by pleas, appeals, or reason",l:9},
+  {w:"balk",d:"To stubbornly refuse to do something; to stop short and refuse to go on",l:9},
+  {w:"camaraderie",d:"Comradeship; lighthearted good will and friendliness among companions",l:9},
+  {w:"cantankerous",d:"Disagreeable; bad-tempered; likely to quarrel",l:9},
+  {w:"compliance",d:"The act of going along with a request, demand, or rule; obedience",l:9},
+  {w:"presumptuous",d:"Excessively bold or forward; going beyond what is proper or right",l:9},
+  {w:"propitiate",d:"To soothe bad feelings; to appease; to regain friendship or good will",l:9},
+  {w:"tractable",d:"Easily managed or controlled",l:9},
+  {w:"volition",d:"The power of choosing or deciding; free will",l:9},
+  {w:"acuity",d:"Sharpness of vision or perception",l:10},
+  {w:"consummate",d:"Supremely accomplished or skilled; to bring to completion or fulfillment",l:10},
+  {w:"cunning",d:"Marked by sly deception; crafty; skill in deception or dexterity in performance",l:10},
+  {w:"deft",d:"Quick and skillful",l:10},
+  {w:"endowment",d:"A natural gift, ability, or quality; funds donated to an institution",l:10},
+  {w:"facile",d:"Easy; achieved with little effort; working with effortless ease and fluency",l:10},
+  {w:"inept",d:"Lacking skill or judgment; incompetent; clumsy",l:10},
+  {w:"prescient",d:"Having foreknowledge of events before they occur",l:10},
+  {w:"proficient",d:"Able to do something very well; highly skilled; expert",l:10},
+  {w:"prowess",d:"Superior strength, skill, courage, or daring",l:10},
+  {w:"beseech",d:"To request earnestly; to implore or beg",l:11},
+  {w:"cajole",d:"To urge with gentle, repeated appeals or flattery; to wheedle",l:11},
+  {w:"elicit",d:"To bring out or call forth",l:11},
+  {w:"enjoin",d:"To direct or order with authority; to prohibit or forbid",l:11},
+  {w:"exigency",d:"The state of requiring much effort or immediate action; an urgent crisis",l:11},
+  {w:"imperious",d:"Arrogantly bossy; domineering; overbearing",l:11},
+  {w:"injunction",d:"A command, a directive, or an order",l:11},
+  {w:"mendicant",d:"Dependent on begging for a living; a beggar",l:11},
+  {w:"query",d:"A question; an inquiry; to question, often with doubt",l:11},
+  {w:"servile",d:"Slavish; behaving like a servant; excessively submissive",l:11},
+  {w:"abound",d:"To be great in number or amount",l:12},
+  {w:"amplitude",d:"Greatness of size or range; magnitude",l:12},
+  {w:"augment",d:"To add to; to increase the size, extent, or quantity of",l:12},
+  {w:"behemoth",d:"Something enormous in size or power",l:12},
+  {w:"brevity",d:"The quality of being short in duration; briefness; brief or concise expression",l:12},
+  {w:"diminish",d:"To make or become smaller or less; to lessen authority, reputation, or prestige",l:12},
+  {w:"infinitesimal",d:"Too small to measure or calculate",l:12},
+  {w:"modicum",d:"A small or token amount",l:12},
+  {w:"prodigious",d:"Impressively great in size, force, or extent; extraordinary; marvelous",l:12},
+  {w:"quotidian",d:"Everyday; commonplace",l:12},
+  {w:"banal",d:"Unoriginal and commonplace; trite",l:13},
+  {w:"camouflage",d:"Concealment by disguise or coloring that matches surroundings; to hide by blending in",l:13},
+  {w:"emulate",d:"To strive to equal or excel, especially through imitation",l:13},
+  {w:"mimicry",d:"Imitation or copying, especially of expression and gesture",l:13},
+  {w:"platitude",d:"An overused, dull, and unoriginal phrase or statement",l:13},
+  {w:"prototype",d:"An original type, form, or instance serving as a basis or standard; an early typical example",l:13},
+  {w:"redundant",d:"Extra; exceeding what is necessary; repetitive or needlessly wordy",l:13},
+  {w:"rendition",d:"An interpretation or a performance of a musical or dramatic piece",l:13},
+  {w:"sham",d:"Something false presented as genuine; not genuine; to put on a false appearance",l:13},
+  {w:"simulation",d:"An imitation, representation, or reproduction of a situation or experience",l:13},
+  {w:"adverse",d:"Opposing; contrary to one's interests; harmful or unfavorable",l:14},
+  {w:"averse",d:"Referring to a feeling of avoidance and dislike",l:14},
+  {w:"ingenious",d:"Marked by inventive skill and imagination; extremely clever",l:14},
+  {w:"ingenuous",d:"Unable to deceive; openly straightforward",l:14},
+  {w:"persecute",d:"To continuously mistreat or be cruel to someone; to annoy persistently",l:14},
+  {w:"prosecute",d:"To bring an action in a court of law; to continue an activity until it is completed",l:14},
+  {w:"quorum",d:"The minimum number of people who must be present to make a decision",l:14},
+  {w:"quota",d:"The amount of goods assigned to a person; a number representing an upper limit or required minimum",l:14},
+  {w:"respectfully",d:"With regard and esteem; politely",l:14},
+  {w:"respectively",d:"Referring to things or people in the order given",l:14},
+  {w:"abdicate",d:"To formally give up control, authority, or a high office",l:15},
+  {w:"absolve",d:"To clear of guilt or blame; to relieve from a requirement or obligation",l:15},
+  {w:"catharsis",d:"A purifying or refreshing release of emotional tension",l:15},
+  {w:"countermand",d:"To cancel or reverse an order or a policy",l:15},
+  {w:"impunity",d:"Exemption from punishment or injury",l:15},
+  {w:"recant",d:"To formally take back or reject a statement or belief",l:15},
+  {w:"recoup",d:"To regain; to make up for",l:15},
+  {w:"renounce",d:"To give up by formal announcement; to reject; to disown",l:15},
+  {w:"rescind",d:"To take back; to make void; to repeal",l:15},
+  {w:"waive",d:"To give up voluntarily; to refrain from insisting on or enforcing",l:15}
+];
+
+const LETTERS=['A','B','C','D'];
+let mode='quiz',selectedLesson='all',pool=[],queue=[],current=0,score=0,answered=false,wrong=[],flashIdx=0,flashFlipped=false;
+
+function buildLessonRow(){
+  const row=document.getElementById('lesson-row');
+  const pills=[{id:'all',label:'All 150'},...Array.from({length:15},(_,i)=>({id:i+1,label:`L${i+1}`}))];
+  row.innerHTML=pills.map(l=>`<button class="lesson-pill${l.id===selectedLesson?' active':''}" onclick="selectLesson('${l.id}')">${l.label}</button>`).join('');
+}
+
+function selectLesson(id){
+  selectedLesson=id==='all'?'all':parseInt(id);
+  buildLessonRow();startSession();
+}
+
+function getPool(){return selectedLesson==='all'?[...ALL]:ALL.filter(x=>x.l===selectedLesson);}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('mode-quiz').className='mode-btn'+(m==='quiz'?' active':'');
+  document.getElementById('mode-flash').className='mode-btn'+(m==='flash'?' active':'');
+  startSession();
+}
+
+function startSession(){
+  pool=getPool();queue=shuffle([...pool]);
+  current=0;score=0;answered=false;wrong=[];flashIdx=0;flashFlipped=false;
+  render();
+}
+
+function makeOptions(item){
+  const w3=shuffle(pool.filter(x=>x.w!==item.w)).slice(0,3);
+  return shuffle([item,...w3]);
+}
+
+function render(){
+  const app=document.getElementById('app');
+  if(mode==='flash'){renderFlash(app);return;}
+  if(current>=queue.length){renderResult(app);return;}
+  const item=queue[current];
+  const opts=makeOptions(item);
+  const pct=Math.round((current/queue.length)*100);
+  const lname=selectedLesson==='all'?`Lesson ${item.l} · ${LESSON_NAMES[item.l]}`:LESSON_NAMES[item.l];
+  const safeOpts=opts.map(o=>({...o,ws:o.w.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}));
+  const itemWs=item.w.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  app.innerHTML=`
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Question</div><div class="stat-val">${current+1}<span style="font-size:14px;color:var(--muted)">/${queue.length}</span></div></div>
+      <div class="stat"><div class="stat-label">Correct</div><div class="stat-val">${score}</div></div>
+      <div class="stat"><div class="stat-label">Score</div><div class="stat-val">${current>0?Math.round(score/current*100):0}<span style="font-size:14px;color:var(--muted)">%</span></div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="qcard">
+      <div class="lesson-tag">${lname}</div>
+      <div class="question">What does this word mean?</div>
+      <div class="question-word">${item.w}</div>
+      <div class="options" id="opts">
+        ${safeOpts.map((o,i)=>`<button class="opt" id="opt-${i}" onclick="pick(${i},'${o.ws}','${itemWs}')"><span class="opt-letter">${LETTERS[i]}</span>${o.d}</button>`).join('')}
+      </div>
+      <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Continue →</button>
+    </div>`;
+}
+
+function pick(idx,chosen,correct){
+  if(answered)return;
+  answered=true;
+  const isRight=chosen===correct;
+  if(isRight){score++;}else{wrong.push(queue[current]);}
+  const item=queue[current];
+  const optEls=document.getElementById('opts').children;
+  for(let i=0;i<optEls.length;i++){
+    optEls[i].classList.add('disabled');
+    const txt=optEls[i].querySelector('.opt-letter').nextSibling;
+    const def=txt?txt.textContent.trim():(optEls[i].textContent.trim().slice(1));
+    if(def===item.d){optEls[i].classList.add('correct');}
+    else if(i===idx&&!isRight){optEls[i].classList.add('wrong');}
+  }
+  document.getElementById('nxt').style.display='block';
+}
+
+function nextQ(){answered=false;current++;render();}
+
+function renderResult(app){
+  const pct=Math.round(score/queue.length*100);
+  const msg=pct>=90?'Exceptional. Your vocabulary is genuinely impressive.':pct>=70?'Solid work. A little more review and you\'ll dominate.':pct>=50?'Good start. Focus on the words below and try again.':'Words are powerful — keep studying and you\'ll get there.';
+  const rev=wrong.length?`<div class="review-section">
+    <div class="review-header">Review these ${wrong.length} word${wrong.length>1?'s':''}</div>
+    ${wrong.map(w=>`<div class="review-item"><div class="review-word">${w.w}</div><div class="review-def">${w.d}</div></div>`).join('')}
+  </div>`:`<div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--correct);margin-top:1rem">Perfect — no words to review</div>`;
+  app.innerHTML=`<div class="qcard result">
+    <div class="big-score">${score}/${queue.length}</div>
+    <div class="result-pct">${pct}% correct</div>
+    <div class="result-msg">${msg}</div>
+    <div class="result-btns">
+      <button class="rbtn primary" onclick="startSession()">Retake</button>
+      ${wrong.length?`<button class="rbtn" onclick="retakeWrong()">Study missed only</button>`:''}
+    </div>
+    ${rev}
+  </div>`;
+}
+
+function retakeWrong(){queue=shuffle([...wrong]);current=0;score=0;answered=false;wrong=[];render();}
+
+function renderFlash(app){
+  if(!pool.length){app.innerHTML='<div class="qcard" style="text-align:center;padding:2rem;color:var(--muted)">No words in this selection.</div>';return;}
+  if(flashIdx>=pool.length)flashIdx=0;
+  const item=pool[flashIdx];
+  app.innerHTML=`
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Card</div><div class="stat-val">${flashIdx+1}<span style="font-size:14px;color:var(--muted)">/${pool.length}</span></div></div>
+      <div class="stat"><div class="stat-label">Lesson</div><div class="stat-val">${item.l}</div></div>
+    </div>
+    <div class="flash-card${flashFlipped?' flipped':''}" onclick="flipCard()">
+      <div class="flash-label">${flashFlipped?'Definition':'Word'}</div>
+      ${flashFlipped
+        ?`<div class="flash-def">${item.d}</div><div class="flash-lesson">Lesson ${item.l} · ${LESSON_NAMES[item.l]}</div>`
+        :`<div class="flash-word">${item.w}</div>`}
+    </div>
+    <div class="flash-nav">
+      <button class="fnav-btn" onclick="flashNav(-1)">← Prev</button>
+      <button class="fnav-btn" onclick="shuffleFlash()">Shuffle</button>
+      <button class="fnav-btn" onclick="flashNav(1)">Next →</button>
+    </div>`;
+}
+
+function flipCard(){flashFlipped=!flashFlipped;renderFlash(document.getElementById('app'));}
+function flashNav(d){flashIdx=(flashIdx+d+pool.length)%pool.length;flashFlipped=false;renderFlash(document.getElementById('app'));}
+function shuffleFlash(){pool=shuffle([...pool]);flashIdx=0;flashFlipped=false;renderFlash(document.getElementById('app'));}
+
+buildLessonRow();
+startSession();
+</script>
+</body>
+</html>
