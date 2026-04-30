@@ -439,9 +439,87 @@ body::after{
   color:var(--accent);
 }
 
+/* Example button & panel */
+.example-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:9px;
+  padding:5px 12px;
+  border:1px solid rgba(245,166,35,0.3);
+  border-radius:20px;
+  background:rgba(245,166,35,0.07);
+  color:var(--accent2);
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .15s;
+  animation:fadeUp .2s ease both;
+}
+.example-btn:hover{
+  background:rgba(245,166,35,0.14);
+  border-color:rgba(245,166,35,0.55);
+  box-shadow:0 0 12px rgba(245,166,35,0.18);
+}
+.example-btn svg{flex-shrink:0}
+.example-panel{
+  margin-top:10px;
+  padding:13px 15px;
+  border:1px solid rgba(245,166,35,0.18);
+  border-radius:12px;
+  background:rgba(245,166,35,0.05);
+  animation:fadeUp .25s ease both;
+  font-size:13px;
+  line-height:1.7;
+}
+.example-panel .ex-sentence{
+  color:var(--text);font-weight:300;margin-bottom:6px;
+}
+.example-panel .ex-sentence em{
+  font-style:italic;color:var(--accent2);
+}
+.example-panel .ex-tip{
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:0.04em;color:var(--muted);
+  border-top:1px solid rgba(245,166,35,0.12);
+  padding-top:7px;margin-top:2px;
+}
+.example-panel .ex-loading{
+  display:flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--muted);
+}
+.spin{
+  width:13px;height:13px;flex-shrink:0;
+  border:2px solid rgba(245,166,35,0.2);
+  border-top-color:var(--accent2);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+
+.kbd-hint{
+  display:flex;gap:1.5rem;justify-content:center;
+  margin-top:10px;
+  font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:0.06em;color:var(--muted);
+  opacity:0.5;
+}
+kbd{
+  display:inline-block;
+  padding:2px 6px;
+  border:1px solid var(--border2);
+  border-radius:5px;
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  margin:0 2px;
+  background:var(--surface2);
+}
 </style>
 </head>
 <body>
@@ -719,6 +797,10 @@ function render(){
       ${prompt}
       <div class="options" id="opts">${optsHtml}</div>
       <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Next Question →</button>
+    </div>
+    <div class="kbd-hint">
+      <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to answer</span>
+      <span><kbd>Space</kbd> to advance</span>
     </div>`;
 }
 
@@ -727,16 +809,62 @@ function pick(idx,chosen,correct){
   answered=true;
   const isRight=chosen===correct;
   if(isRight){score++;}else{wrong.push(queue[current]);}
+  const item=queue[current];
   const optEls=document.getElementById('opts').children;
   for(let i=0;i<optEls.length;i++){
     optEls[i].classList.add('disabled');
     const letter=optEls[i].querySelector('.opt-letter');
     const labelNode=letter.nextSibling;
     const label=labelNode?labelNode.textContent.trim():optEls[i].textContent.trim().slice(1);
-    if(label===correct){optEls[i].classList.add('correct');}
+    if(label===correct){
+      optEls[i].classList.add('correct');
+      // Inject example button below the correct option text
+      const wrap=document.createElement('div');
+      wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='flex-start';
+      // re-wrap existing content
+      const existingContent=Array.from(optEls[i].childNodes);
+      const inner=document.createElement('div');
+      existingContent.forEach(n=>inner.appendChild(n));
+      wrap.appendChild(inner);
+      const exBtn=document.createElement('button');
+      exBtn.className='example-btn';
+      exBtn.innerHTML=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="5" x2="6" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="3.5" r=".75" fill="currentColor"/></svg>Example sentence`;
+      exBtn.onclick=e=>{e.stopPropagation();showExample(item.w,item.d,exBtn,wrap);};
+      wrap.appendChild(exBtn);
+      optEls[i].appendChild(wrap);
+    }
     else if(i===idx&&!isRight){optEls[i].classList.add('wrong');}
   }
   document.getElementById('nxt').style.display='block';
+}
+
+async function showExample(word,def,btn,wrap){
+  btn.remove();
+  const panel=document.createElement('div');
+  panel.className='example-panel';
+  panel.innerHTML=`<div class="ex-loading"><div class="spin"></div>Generating…</div>`;
+  wrap.appendChild(panel);
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`You help students memorize vocabulary words. When given a word and its definition, respond with ONLY a JSON object (no markdown, no backticks) with two keys:
+- "sentence": A vivid, memorable example sentence using the word naturally. Wrap the target word in <em> tags wherever it appears. Keep it 1-2 sentences.
+- "tip": A short memory hook, etymology note, or usage clarification (1 sentence max). Plain text, no tags.`,
+        messages:[{role:'user',content:`Word: ${word}\nDefinition: ${def}`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content.find(c=>c.type==='text')?.text||'{}';
+    let parsed;
+    try{parsed=JSON.parse(text);}catch{parsed={sentence:`The word <em>${word}</em> is used in context.`,tip:''};}
+    panel.innerHTML=`<div class="ex-sentence">${parsed.sentence}</div>${parsed.tip?`<div class="ex-tip">💡 ${parsed.tip}</div>`:''}`;
+  }catch(err){
+    panel.innerHTML=`<div class="ex-sentence" style="color:var(--muted)">Could not load example.</div>`;
+  }
 }
 
 function nextQ(){answered=false;current++;render();}
@@ -781,6 +909,10 @@ function renderFlash(app){
       <button class="fnav-btn" onclick="flashNav(-1)">← Back</button>
       <button class="fnav-btn" onclick="shuffleFlash()">Shuffle</button>
       <button class="fnav-btn" onclick="flashNav(1)">Forward →</button>
+    </div>
+    <div class="kbd-hint" style="margin-top:10px;">
+      <span><kbd>←</kbd><kbd>→</kbd> navigate</span>
+      <span><kbd>Space</kbd> to flip</span>
     </div>`;
 }
 
@@ -790,6 +922,30 @@ function shuffleFlash(){pool=shuffle([...pool]);flashIdx=0;flashFlipped=false;re
 
 buildLessonRow();
 startSession();
+
+document.addEventListener('keydown', e => {
+  const key = e.key.toUpperCase();
+  if(mode === 'quiz') {
+    // A/B/C/D to pick an answer
+    const idx = ['A','B','C','D'].indexOf(key);
+    if(idx !== -1) {
+      const btn = document.getElementById('opt-' + idx);
+      if(btn && !btn.classList.contains('disabled')) btn.click();
+      return;
+    }
+    // Space or Enter to advance
+    if((key === ' ' || e.key === 'Enter') && answered) {
+      e.preventDefault();
+      const nxt = document.getElementById('nxt');
+      if(nxt && nxt.style.display !== 'none') nxt.click();
+    }
+  }
+  if(mode === 'flash') {
+    if(key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+    if(e.key === 'ArrowLeft')  flashNav(-1);
+    if(e.key === 'ArrowRight') flashNav(1);
+  }
+});
 </script>
 </body>
 </html>
