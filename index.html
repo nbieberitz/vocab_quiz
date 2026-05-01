@@ -186,7 +186,7 @@ body::after{
   font-size:9px;letter-spacing:0.14em;
   text-transform:uppercase;
   color:var(--muted);
-  opacity:0.35;
+  opacity:1;
   margin-top:5px;
 }
 
@@ -806,7 +806,7 @@ kbd{
       <span class="logo-eyebrow">English Final · Vocabulary</span>
       <div class="logo">VOCABULARY <em>QUIZ</em></div>
       <span class="logo-sub">150 words &nbsp;·&nbsp; 15 lessons</span>
-      <span class="version-tag">v1.1</span>
+      <span class="version-tag">v1.3</span>
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px">
       <button class="glossary-btn" onclick="openGlossary()" title="View all words & definitions">
@@ -1175,11 +1175,11 @@ function nextQ(){answered=false;current++;render();}
 
 function renderResult(app){
   const pct=Math.round(score/queue.length*100);
-  const msg=pct>=90?'Outstanding — you\'re more than ready for the final. Keep that momentum.':pct>=70?'Solid foundation. One more pass through the missed words and you\'ll be in great shape.':pct>=50?'You\'re getting there. Study the words below and run it again — consistency pays off.':'Don\'t sweat it. Review the list below, then come back. Every rep builds the memory.';
+  const msg=pct>=90?'Excellent work. You know this material.':pct>=70?'Good result. Brush up on the words below and you\'ll be ready.':pct>=50?'A decent start. Go through the words below and run the quiz again to reinforce them.':'More review needed. Work through the list below, then retake the quiz.';
   const rev=wrong.length?`<div class="review-section">
     <div class="review-header">Study these ${wrong.length} word${wrong.length>1?'s':''} before your final</div>
     ${wrong.map(w=>`<div class="review-item"><div class="review-word">${w.w}</div><div class="review-def">${w.d}</div></div>`).join('')}
-  </div>`:`<div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--correct);margin-top:1rem">Flawless — nothing to review</div>`;
+  </div>`:`<div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--correct);margin-top:1rem">Perfect score — nothing to review.</div>`;
   app.innerHTML=`<div class="qcard result">
     <div class="big-score">${score}/${queue.length}</div>
     <div class="result-pct">${pct}% correct</div>
@@ -1187,6 +1187,7 @@ function renderResult(app){
     <div class="result-btns">
       <button class="rbtn primary" onclick="startSession()">Try Again</button>
       ${wrong.length?`<button class="rbtn" onclick="retakeWrong()">Drill Missed Words</button>`:''}
+      <button class="rbtn" onclick="openGlossary()">See All Words</button>
     </div>
     ${rev}
   </div>`;
