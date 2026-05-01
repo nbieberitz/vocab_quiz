@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vocab Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#05080f;
@@ -806,7 +809,7 @@ kbd{
       <span class="logo-eyebrow">English Final · Vocabulary</span>
       <div class="logo">VOCABULARY <em>QUIZ</em></div>
       <span class="logo-sub">150 words &nbsp;·&nbsp; 15 lessons</span>
-      <span class="version-tag">v1.4</span>
+      <span class="version-tag">v2.0</span>
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px">
       <button class="glossary-btn" onclick="openGlossary()" title="View all words & definitions">
@@ -1122,6 +1125,7 @@ function pick(idx,chosen,correct){
   answered=true;
   const isRight=chosen===correct;
   if(isRight){score++;}else{wrong.push(queue[current]);}
+  trackAnswer(isRight);
   const item=queue[current];
   const optEls=document.getElementById('opts').children;
   for(let i=0;i<optEls.length;i++){
@@ -1374,6 +1378,93 @@ document.addEventListener('keydown', e => {
     if(e.key === 'ArrowRight') flashNav(1);
   }
 });
+
+// ─── Firebase Tracking ───────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDadRa4vIG8aKeKSCm5wq5lCRm5G_c9N3U",
+  authDomain: "vocabulary-study-tool.firebaseapp.com",
+  projectId: "vocabulary-study-tool",
+  storageBucket: "vocabulary-study-tool.firebasestorage.app",
+  messagingSenderId: "913103862395",
+  appId: "1:913103862395:web:80676232783593673cc0de",
+  measurementId: "G-788BBW5E0T"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let fbUser = null;
+let sessionStart = null;
+
+auth.signInAnonymously().then(async result => {
+  fbUser = result.user;
+  const uid = fbUser.uid;
+  const userRef = db.collection('users').doc(uid);
+  const statsRef = db.collection('stats').doc('global');
+  const snap = await userRef.get();
+
+  if (!snap.exists) {
+    // New user — assign a number atomically
+    await db.runTransaction(async t => {
+      const statsSnap = await t.get(statsRef);
+      const count = statsSnap.exists ? (statsSnap.data().totalUsers || 0) : 0;
+      const userNumber = count + 1;
+      t.set(statsRef, {
+        totalUsers: userNumber,
+        totalTimeSeconds: 0,
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0
+      }, { merge: true });
+      t.set(userRef, {
+        userNumber,
+        firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        totalTimeSeconds: 0,
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0,
+        sessionCount: 1
+      });
+    });
+  } else {
+    await userRef.update({
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      sessionCount: firebase.firestore.FieldValue.increment(1)
+    });
+  }
+  sessionStart = Date.now();
+}).catch(err => console.warn('Firebase auth error:', err));
+
+function flushTime() {
+  if (!fbUser || !sessionStart) return;
+  const elapsed = Math.round((Date.now() - sessionStart) / 1000);
+  if (elapsed < 1) return;
+  sessionStart = Date.now();
+  const inc = firebase.firestore.FieldValue.increment(elapsed);
+  db.collection('users').doc(fbUser.uid).update({ totalTimeSeconds: inc });
+  db.collection('stats').doc('global').update({ totalTimeSeconds: inc });
+}
+
+function trackAnswer(correct) {
+  if (!fbUser) return;
+  const userRef = db.collection('users').doc(fbUser.uid);
+  const statsRef = db.collection('stats').doc('global');
+  const inc = firebase.firestore.FieldValue.increment;
+  userRef.update({
+    totalQuestionsAnswered: inc(1),
+    ...(correct ? { totalCorrectAnswers: inc(1) } : {})
+  });
+  statsRef.update({
+    totalQuestionsAnswered: inc(1),
+    ...(correct ? { totalCorrectAnswers: inc(1) } : {})
+  });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushTime();
+  else sessionStart = Date.now();
+});
+window.addEventListener('beforeunload', flushTime);
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>
