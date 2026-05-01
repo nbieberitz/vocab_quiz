@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 <title>Vocab Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#05080f;
@@ -91,6 +95,113 @@ body.light .flash-card::before{
   background:linear-gradient(90deg,transparent,rgba(0,119,204,0.12),transparent);
 }
 
+/* Optional data button */
+.opt-data-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:8px;
+  padding:7px 14px;
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:20px;
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:0.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .15s;
+  width:fit-content;
+}
+.opt-data-btn:hover{
+  border-color:var(--text);
+  color:var(--text);
+}
+.opt-data-btn svg{opacity:0.5}
+
+/* Name modal */
+.name-modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(6px);
+  z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.name-modal-overlay.open{opacity:1;pointer-events:all;}
+.name-modal{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:2rem 2rem 1.5rem;
+  width:min(420px,90vw);
+  box-shadow:0 8px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(0,200,255,0.06);
+  display:flex;flex-direction:column;gap:1.1rem;
+  transform:translateY(10px);
+  transition:transform .2s;
+}
+.name-modal-overlay.open .name-modal{transform:translateY(0);}
+.name-modal-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.7rem;letter-spacing:0.07em;
+  color:var(--text);
+  line-height:1;
+}
+.name-modal-title em{font-style:normal;color:var(--accent);}
+.name-modal-desc{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:0.06em;
+  color:var(--muted);
+  line-height:1.7;
+}
+.name-modal-input{
+  width:100%;
+  padding:10px 14px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.name-modal-input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(0,212,255,0.1);
+}
+.name-modal-input::placeholder{color:var(--muted);opacity:0.6;}
+.name-modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.name-modal-cancel{
+  padding:8px 18px;
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:8px;
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:0.06em;
+  cursor:pointer;transition:all .15s;
+}
+.name-modal-cancel:hover{border-color:var(--text);color:var(--text);}
+.name-modal-submit{
+  padding:8px 20px;
+  background:linear-gradient(135deg,var(--accent),rgba(0,180,220,0.85));
+  border:none;border-radius:8px;
+  color:#050810;
+  font-family:'DM Mono',monospace;
+  font-size:12px;font-weight:500;letter-spacing:0.06em;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 0 12px rgba(0,212,255,0.25);
+}
+.name-modal-submit:hover{box-shadow:0 0 20px rgba(0,212,255,0.4);}
+.name-modal-submit:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.name-modal-thanks{
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:0.07em;
+  color:var(--correct);
+  text-align:center;
+  padding:4px 0 2px;
+}
+
 /* Theme toggle button */
 .theme-toggle{
   display:flex;align-items:center;justify-content:center;
@@ -103,10 +214,11 @@ body.light .flash-card::before{
   align-self:flex-start;
   transition:all .15s;
   user-select:none;
+  box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 .theme-toggle:hover{
   border-color:var(--accent);
-  box-shadow:0 0 12px var(--glow);
+  box-shadow:0 0 16px var(--glow);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -178,15 +290,16 @@ body::after{
   font-family:'DM Mono',monospace;
   font-size:10px;letter-spacing:0.12em;
   text-transform:uppercase;
-  color:var(--muted);
+  color:var(--text);
+  opacity:0.55;
   margin-top:3px;
 }
 .version-tag{
   font-family:'DM Mono',monospace;
   font-size:9px;letter-spacing:0.14em;
   text-transform:uppercase;
-  color:var(--muted);
-  opacity:1;
+  color:var(--text);
+  opacity:0.45;
   margin-top:5px;
 }
 
@@ -197,13 +310,13 @@ body::after{
   border:1px solid var(--border2);
   border-radius:40px;
   padding:4px;gap:2px;
-  box-shadow:0 0 16px rgba(0,212,255,0.06);
+  box-shadow:0 0 20px rgba(0,212,255,0.1),0 0 0 1px rgba(0,212,255,0.04);
 }
 .mode-btn{
   padding:7px 18px;
   border:none;border-radius:36px;
   background:transparent;
-  color:var(--muted);
+  color:var(--text);
   font-family:'DM Mono',monospace;
   font-size:12px;letter-spacing:0.06em;
   cursor:pointer;transition:all .2s;
@@ -213,7 +326,7 @@ body::after{
   background:linear-gradient(135deg,var(--accent),rgba(0,180,220,0.85));
   color:#050810;
   font-weight:500;
-  box-shadow:0 0 12px rgba(0,212,255,0.35);
+  box-shadow:0 0 16px rgba(0,212,255,0.45);
 }
 
 /* Direction toggle */
@@ -224,7 +337,7 @@ body::after{
   flex:1;padding:6px 10px;
   border:none;border-radius:36px;
   background:transparent;
-  color:var(--muted);
+  color:var(--text);
   font-family:'DM Mono',monospace;
   font-size:10px;letter-spacing:0.05em;
   cursor:pointer;transition:all .2s;
@@ -241,10 +354,10 @@ body::after{
 .lesson-row{display:flex;gap:7px;margin-bottom:1.75rem;flex-wrap:wrap}
 .lesson-pill{
   padding:6px 13px;
-  border:1px solid var(--border);
+  border:1px solid var(--border2);
   border-radius:30px;
   background:var(--surface);
-  color:var(--muted);
+  color:var(--text);
   font-family:'DM Mono',monospace;
   font-size:11px;letter-spacing:0.06em;
   cursor:pointer;transition:all .15s;
@@ -270,7 +383,7 @@ body::after{
 .stat-label{
   font-family:'DM Mono',monospace;
   font-size:10px;letter-spacing:0.12em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:4px;
+  text-transform:uppercase;color:var(--text);opacity:0.6;margin-bottom:4px;
 }
 .stat-val{
   font-size:22px;font-weight:300;
@@ -627,18 +740,19 @@ body::after{
   border:1px solid var(--border2);
   border-radius:30px;
   background:var(--surface);
-  color:var(--muted);
+  color:var(--text);
   font-family:'DM Mono',monospace;
   font-size:11px;letter-spacing:0.08em;
   text-transform:uppercase;
   cursor:pointer;transition:all .15s;
   flex-shrink:0;
   align-self:flex-start;
+  box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 .glossary-btn:hover{
   border-color:var(--accent);
   color:var(--accent);
-  box-shadow:0 0 14px var(--glow);
+  box-shadow:0 0 16px var(--glow);
 }
 
 /* Glossary overlay */
@@ -806,9 +920,17 @@ kbd{
       <span class="logo-eyebrow">English Final · Vocabulary</span>
       <div class="logo">VOCABULARY <em>QUIZ</em></div>
       <span class="logo-sub">150 words &nbsp;·&nbsp; 15 lessons</span>
-      <span class="version-tag">v1.4</span>
+      <span class="version-tag">v2.1.2</span>
     </div>
-    <div style="display:flex;align-items:flex-start;gap:8px">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <button class="opt-data-btn" onclick="openNameModal()" style="display:none">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M1.5 10.5c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Send optional data
+      </button>
+      <div style="display:flex;align-items:center;gap:8px">
       <button class="glossary-btn" onclick="openGlossary()" title="View all words & definitions">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="2" width="12" height="1.4" rx="0.7" fill="currentColor"/>
@@ -823,6 +945,21 @@ kbd{
       </div>
       <div class="theme-toggle" onclick="setTheme(document.body.classList.contains('light')?'dark':'light')" title="Toggle theme" style="cursor:pointer">
         <span id="theme-icon">🌙</span>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Name modal -->
+  <div class="name-modal-overlay" id="name-modal-overlay" onclick="handleNameOverlayClick(event)">
+    <div class="name-modal">
+      <div class="name-modal-title">OPTIONAL <em>DATA</em></div>
+      <p class="name-modal-desc">This allows minor optional data to be sent to the developer to help improve the website if needed.</p>
+      <input class="name-modal-input" id="name-modal-input" type="text" placeholder="Your name" maxlength="60" oninput="onNameInput()">
+      <div id="name-modal-thanks" class="name-modal-thanks" style="display:none">✓ Thanks! Your name has been saved.</div>
+      <div class="name-modal-actions" id="name-modal-actions">
+        <button class="name-modal-cancel" onclick="closeNameModal()">Cancel</button>
+        <button class="name-modal-submit" id="name-modal-submit" onclick="submitName()" disabled>Submit</button>
       </div>
     </div>
   </div>
@@ -847,8 +984,8 @@ kbd{
   <div class="dir-row" id="dir-row">
     <span class="dir-label">Mode</span>
     <div class="dir-toggle">
-      <button class="dir-btn active" id="dir-word" onclick="setDir('word')">Word → Def</button>
-      <button class="dir-btn" id="dir-def" onclick="setDir('def')">Def → Word</button>
+      <button class="dir-btn active" id="dir-word" onclick="setDir('word')">Word → Definition</button>
+      <button class="dir-btn" id="dir-def" onclick="setDir('def')">Definition → Word</button>
       <button class="dir-btn" id="dir-random" onclick="setDir('random')">Random</button>
     </div>
   </div>
@@ -1122,6 +1259,7 @@ function pick(idx,chosen,correct){
   answered=true;
   const isRight=chosen===correct;
   if(isRight){score++;}else{wrong.push(queue[current]);}
+  trackAnswer(isRight);
   const item=queue[current];
   const optEls=document.getElementById('opts').children;
   for(let i=0;i<optEls.length;i++){
@@ -1374,6 +1512,190 @@ document.addEventListener('keydown', e => {
     if(e.key === 'ArrowRight') flashNav(1);
   }
 });
+
+// ─── Optional Name Modal ──────────────────────────────────────────────────────
+function openNameModal() {
+  const overlay = document.getElementById('name-modal-overlay');
+  const input = document.getElementById('name-modal-input');
+  const thanks = document.getElementById('name-modal-thanks');
+  const actions = document.getElementById('name-modal-actions');
+  const submit = document.getElementById('name-modal-submit');
+  // Reset state
+  input.value = '';
+  input.style.display = '';
+  thanks.style.display = 'none';
+  actions.style.display = 'flex';
+  submit.disabled = true;
+  overlay.classList.add('open');
+  setTimeout(() => input.focus(), 150);
+}
+
+function closeNameModal() {
+  document.getElementById('name-modal-overlay').classList.remove('open');
+}
+
+function handleNameOverlayClick(e) {
+  if (e.target === document.getElementById('name-modal-overlay')) closeNameModal();
+}
+
+function onNameInput() {
+  const val = document.getElementById('name-modal-input').value.trim();
+  document.getElementById('name-modal-submit').disabled = val.length === 0;
+}
+
+function submitName() {
+  const name = document.getElementById('name-modal-input').value.trim();
+  if (!name || !fbUser) return;
+  const submit = document.getElementById('name-modal-submit');
+  submit.disabled = true;
+  submit.textContent = 'Saving…';
+  db.collection("users").doc(fbUser.uid).update({ displayName: name })
+    .then(() => {
+      document.getElementById('name-modal-input').style.display = 'none';
+      document.getElementById('name-modal-actions').style.display = 'none';
+      document.getElementById('name-modal-thanks').style.display = 'block';
+      document.querySelector('.opt-data-btn').style.display = 'none';
+      setTimeout(() => closeNameModal(), 1800);
+    })
+    .catch(() => {
+      submit.disabled = false;
+      submit.textContent = 'Submit';
+    });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Firebase Tracking ───────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDadRa4vIG8aKeKSCm5wq5lCRm5G_c9N3U",
+  authDomain: "vocabulary-study-tool.firebaseapp.com",
+  projectId: "vocabulary-study-tool",
+  storageBucket: "vocabulary-study-tool.firebasestorage.app",
+  messagingSenderId: "913103862395",
+  appId: "1:913103862395:web:80676232783593673cc0de",
+  measurementId: "G-788BBW5E0T"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let fbUser = null;
+let secondTimer = null;
+let flushTimer = null;
+let localUserSeconds = 0;
+let localGlobalSeconds = 0;
+
+function fmtHMS(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+}
+
+auth.signInAnonymously().then(async result => {
+  fbUser = result.user;
+  const uid = fbUser.uid;
+  const userRef = db.collection("users").doc(uid);
+  const statsRef = db.collection("stats").doc("global");
+  const snap = await userRef.get();
+  const statsSnap = await statsRef.get();
+
+  if (!snap.exists) {
+    // New user — assign a number atomically
+    await db.runTransaction(async t => {
+      const ss = await t.get(statsRef);
+      const count = ss.exists ? (ss.data().totalUsers || 0) : 0;
+      const userNumber = count + 1;
+      t.set(statsRef, {
+        totalUsers: userNumber,
+        totalTime: "00:00:00",
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0
+      }, { merge: true });
+      t.set(userRef, {
+        userNumber,
+        firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        totalTime: "00:00:00",
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0,
+        sessionCount: 1
+      });
+    });
+    localUserSeconds = 0;
+    localGlobalSeconds = statsSnap.exists ? parseHMS(statsSnap.data().totalTime) : 0;
+    document.querySelector('.opt-data-btn').style.display = '';  // new user, no name yet
+  } else {
+    await userRef.update({
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      sessionCount: firebase.firestore.FieldValue.increment(1)
+    });
+    localUserSeconds = parseHMS(snap.data().totalTime);
+    localGlobalSeconds = statsSnap.exists ? parseHMS(statsSnap.data().totalTime) : 0;
+    if (!snap.data().displayName) {
+      document.querySelector('.opt-data-btn').style.display = '';
+    }
+  }
+  startSecondTimer();
+}).catch(err => console.warn("Firebase auth error:", err));
+
+// Parses "HH:MM:SS" back to total seconds for local tracking.
+function parseHMS(str) {
+  if (!str || typeof str !== "string") return 0;
+  const [h,m,s] = str.split(":").map(Number);
+  return (h||0)*3600 + (m||0)*60 + (s||0);
+}
+
+// Ticks every second locally. Flushes to Firestore every 60s and on tab hide/close.
+function startSecondTimer() {
+  stopTimers();
+  secondTimer = setInterval(() => {
+    localUserSeconds++;
+    localGlobalSeconds++;
+  }, 1000);
+  flushTimer = setInterval(() => {
+    flushTime();
+  }, 60000);
+}
+
+function stopTimers() {
+  clearInterval(secondTimer);
+  clearInterval(flushTimer);
+  secondTimer = null;
+  flushTimer = null;
+}
+
+function flushTime() {
+  if (!fbUser) return;
+  db.collection("users").doc(fbUser.uid).update({ totalTime: fmtHMS(localUserSeconds) });
+  db.collection("stats").doc("global").update({ totalTime: fmtHMS(localGlobalSeconds) });
+}
+
+function trackAnswer(isRight) {
+  if (!fbUser) return;
+  const inc1 = firebase.firestore.FieldValue.increment(1);
+  db.collection("users").doc(fbUser.uid).update({
+    totalQuestionsAnswered: inc1,
+    ...(isRight ? { totalCorrectAnswers: inc1 } : {})
+  });
+  db.collection("stats").doc("global").update({
+    totalQuestionsAnswered: inc1,
+    ...(isRight ? { totalCorrectAnswers: inc1 } : {})
+  });
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    stopTimers();
+    flushTime();
+  } else {
+    startSecondTimer();
+  }
+});
+window.addEventListener("beforeunload", () => {
+  stopTimers();
+  flushTime();
+});
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>
