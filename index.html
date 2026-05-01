@@ -613,6 +613,203 @@ body::after{
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
 
+/* Glossary button */
+.glossary-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 15px;
+  border:1px solid var(--border2);
+  border-radius:30px;
+  background:var(--surface);
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:0.08em;
+  text-transform:uppercase;
+  cursor:pointer;transition:all .15s;
+  flex-shrink:0;
+  align-self:flex-start;
+}
+.glossary-btn:hover{
+  border-color:var(--accent);
+  color:var(--accent);
+  box-shadow:0 0 14px var(--glow);
+}
+
+/* Glossary overlay */
+.glossary-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:var(--bg);
+  z-index:100;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  animation:fadeUp .25s ease both;
+}
+.glossary-overlay.open{display:block;}
+.glossary-layout{
+  display:flex;
+  gap:0;
+  max-width:1060px;
+  margin:0 auto;
+  padding:2.5rem 1.5rem 6rem 2.5rem;
+  align-items:flex-start;
+  position:relative;
+  min-height:101%;
+}
+@media(max-width:720px){
+  .glossary-layout{padding:1.5rem 1rem 4rem;}
+  .glossary-sidebar{display:none;}
+}
+.glossary-main{
+  flex:1;
+  min-width:0;
+  padding-right:2rem;
+}
+.glossary-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2.5rem;
+  gap:1rem;
+}
+.glossary-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,7vw,3.2rem);
+  letter-spacing:0.06em;
+  color:var(--text);
+}
+.glossary-title em{
+  font-style:normal;
+  color:var(--accent);
+  text-shadow:0 0 24px rgba(0,212,255,0.5),0 0 50px rgba(0,212,255,0.15);
+}
+.glossary-back{
+  display:flex;align-items:center;gap:7px;
+  padding:9px 20px;
+  border:1px solid var(--border2);
+  border-radius:30px;
+  background:var(--surface);
+  color:var(--accent);
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:0.08em;
+  text-transform:uppercase;
+  cursor:pointer;transition:all .15s;
+  flex-shrink:0;
+}
+.glossary-back:hover{
+  background:rgba(0,212,255,0.08);
+  box-shadow:0 0 18px var(--glow);
+}
+.glossary-count{
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--text);
+  opacity:0.5;
+  margin-bottom:2.5rem;
+}
+.glossary-lesson{
+  margin-bottom:3rem;
+}
+.glossary-lesson-header{
+  display:flex;align-items:baseline;gap:14px;
+  margin-bottom:1.1rem;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border2);
+  transition:all .3s;
+}
+.glossary-lesson-header.flash{
+  animation:lessonFlash .6s ease both;
+}
+@keyframes lessonFlash{
+  0%  {opacity:1;transform:translateX(0)}
+  15% {opacity:0.3;transform:translateX(-8px)}
+  35% {opacity:1;transform:translateX(6px)}
+  55% {opacity:0.7;transform:translateX(-3px)}
+  75% {opacity:1;transform:translateX(2px)}
+  100%{opacity:1;transform:translateX(0)}
+}
+.glossary-lesson-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;
+  letter-spacing:0.06em;
+  color:var(--accent2);
+}
+.glossary-lesson-name{
+  font-family:'DM Mono',monospace;
+  font-size:12px;letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--text);
+  opacity:0.55;
+}
+.glossary-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.glossary-entry{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:20px 22px;
+  transition:border-color .15s;
+}
+.glossary-entry:hover{border-color:var(--accent);box-shadow:0 0 14px var(--glow);}
+.glossary-word{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.9rem;
+  letter-spacing:0.06em;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.glossary-def{
+  font-size:15px;
+  color:var(--text);
+  opacity:0.75;
+  line-height:1.65;
+  font-family:'DM Sans',sans-serif;
+  font-weight:300;
+}
+
+/* Glossary sidebar */
+.glossary-sidebar{
+  width:58px;
+  flex-shrink:0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  padding:1.5rem 0;
+  overflow:hidden;
+}
+.gls-pill{
+  width:50px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border2);
+  border-radius:10px;
+  background:var(--surface);
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:0.04em;
+  cursor:pointer;
+  transition:all .2s;
+  user-select:none;
+  flex-shrink:0;
+}
+.gls-pill:hover{
+  border-color:var(--accent);
+  color:var(--text);
+  background:rgba(0,212,255,0.05);
+}
+.gls-pill.active{
+  border-color:var(--accent);
+  background:rgba(0,212,255,0.13);
+  color:var(--accent);
+  box-shadow:0 0 14px rgba(0,212,255,0.3),0 0 0 1px rgba(0,212,255,0.1);
+  font-weight:500;
+  transform:scale(1.1);
+}
+
 .kbd-hint{
   display:flex;gap:1.5rem;justify-content:center;
   margin-top:10px;
@@ -644,6 +841,14 @@ kbd{
       <span class="logo-sub">150 words &nbsp;·&nbsp; 15 lessons</span>
     </div>
     <div style="display:flex;align-items:flex-start;gap:8px">
+      <button class="glossary-btn" onclick="openGlossary()" title="View all words & definitions">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="2" width="12" height="1.4" rx="0.7" fill="currentColor"/>
+          <rect x="1" y="6.3" width="12" height="1.4" rx="0.7" fill="currentColor"/>
+          <rect x="1" y="10.6" width="8" height="1.4" rx="0.7" fill="currentColor"/>
+        </svg>
+        All Words
+      </button>
       <div class="mode-toggle">
         <button class="mode-btn active" id="mode-quiz" onclick="setMode('quiz')">Practice</button>
         <button class="mode-btn" id="mode-flash" onclick="setMode('flash')">Flashcards</button>
@@ -651,6 +856,23 @@ kbd{
       <div class="theme-toggle" onclick="setTheme(document.body.classList.contains('light')?'dark':'light')" title="Toggle theme" style="cursor:pointer">
         <span id="theme-icon">🌙</span>
       </div>
+    </div>
+  </div>
+
+  <!-- Glossary overlay -->
+  <div class="glossary-overlay" id="glossary-overlay">
+    <div class="glossary-layout">
+      <div class="glossary-main">
+        <div class="glossary-topbar">
+          <div>
+            <div class="glossary-title">ALL <em>WORDS</em></div>
+          </div>
+          <button class="glossary-back" onclick="closeGlossary()">← Back to Quiz</button>
+        </div>
+        <div class="glossary-count" id="glossary-count"></div>
+        <div id="glossary-body"></div>
+      </div>
+      <div class="glossary-sidebar" id="glossary-sidebar"></div>
     </div>
   </div>
   <div class="lesson-row" id="lesson-row"></div>
@@ -1068,6 +1290,120 @@ function setTheme(t){
   document.body.classList.toggle('light', t==='light');
   localStorage.setItem('vocab_theme', t);
   document.getElementById('theme-icon').textContent = t==='light' ? '☀️' : '🌙';
+}
+
+let glossaryObserver=null;
+
+function openGlossary(){
+  const overlay=document.getElementById('glossary-overlay');
+  const body=document.getElementById('glossary-body');
+  const countEl=document.getElementById('glossary-count');
+  const sidebar=document.getElementById('glossary-sidebar');
+
+  countEl.textContent=`${ALL.length} words · ${Object.keys(LESSON_NAMES).length} lessons`;
+
+  // Build lesson sections
+  body.innerHTML=Object.entries(LESSON_NAMES).map(([num,name])=>{
+    const words=ALL.filter(x=>x.l===parseInt(num));
+    const entries=words.map(w=>`
+      <div class="glossary-entry">
+        <div class="glossary-word">${w.w}</div>
+        <div class="glossary-def">${w.d}</div>
+      </div>`).join('');
+    return `<div class="glossary-lesson" id="gl-lesson-${num}" data-lesson="${num}">
+      <div class="glossary-lesson-header" id="gl-header-${num}">
+        <span class="glossary-lesson-num">Lesson ${num}</span>
+        <span class="glossary-lesson-name">${name}</span>
+      </div>
+      <div class="glossary-grid">${entries}</div>
+    </div>`;
+  }).join('');
+
+  // Build sidebar pills
+  sidebar.innerHTML=Object.keys(LESSON_NAMES).map(num=>`
+    <button class="gls-pill" id="gls-pill-${num}" onclick="jumpToLesson(${num})" title="Lesson ${num}: ${LESSON_NAMES[num]}">
+      L${num}
+    </button>`).join('');
+
+  overlay.classList.add('open');
+  overlay.scrollTop=0;
+  document.body.style.overflow='hidden';
+
+  // Activate pill 1 immediately
+  setActivePill(1);
+
+  // Set up IntersectionObserver on the overlay scroll container
+  if(glossaryObserver) glossaryObserver.disconnect();
+  glossaryObserver=new IntersectionObserver((entries)=>{
+    // Find the topmost intersecting lesson
+    let best=null,bestTop=Infinity;
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const top=e.boundingClientRect.top;
+        if(top<bestTop){bestTop=top;best=e.target;}
+      }
+    });
+    if(best){
+      setActivePill(best.dataset.lesson);
+    }
+  },{root:overlay,threshold:0.15});
+
+  document.querySelectorAll('.glossary-lesson').forEach(el=>glossaryObserver.observe(el));
+}
+
+function setActivePill(num){
+  document.querySelectorAll('.gls-pill').forEach(p=>p.classList.remove('active'));
+  const pill=document.getElementById('gls-pill-'+num);
+  if(pill){
+    pill.classList.add('active');
+    // Keep active pill visible within sidebar (scroll sidebar if needed)
+    pill.scrollIntoView({block:'nearest'});
+  }
+}
+
+function smoothScrollOverlay(overlay, toY, duration){
+  const startY = overlay.scrollTop;
+  const diff = toY - startY;
+  if(Math.abs(diff) < 1) return;
+  const startTime = performance.now();
+  function step(now){
+    const t = Math.min((now - startTime) / duration, 1);
+    // ease-in-out cubic
+    const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    overlay.scrollTop = startY + diff * ease;
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function jumpToLesson(num){
+  const overlay = document.getElementById('glossary-overlay');
+  const target  = document.getElementById('gl-lesson-' + num);
+  const header  = document.getElementById('gl-header-' + num);
+  if(!target || !overlay) return;
+
+  // getBoundingClientRect is viewport-relative; overlay is fixed at top:0
+  const targetTop   = target.getBoundingClientRect().top;
+  const overlayTop  = overlay.getBoundingClientRect().top;
+  const destination = overlay.scrollTop + targetTop - overlayTop - 48;
+
+  smoothScrollOverlay(overlay, Math.max(0, destination), 520);
+
+  // Bounce animation on the lesson header after scroll settles
+  setTimeout(()=>{
+    header.classList.remove('flash');
+    void header.offsetWidth;
+    header.classList.add('flash');
+    setTimeout(()=>header.classList.remove('flash'), 700);
+  }, 380);
+
+  setActivePill(num);
+}
+
+function closeGlossary(){
+  document.getElementById('glossary-overlay').classList.remove('open');
+  document.body.style.overflow='';
+  if(glossaryObserver){glossaryObserver.disconnect();glossaryObserver=null;}
 }
 
 buildLessonRow();
