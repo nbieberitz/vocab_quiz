@@ -656,14 +656,15 @@ body::after{
   min-height:101%;
 }
 @media(max-width:720px){
-  .glossary-layout{padding:1.5rem 1rem 4rem;}
-  .glossary-sidebar{display:none;}
+  .glossary-layout{padding:1.5rem 1rem 6rem;}
 }
 .glossary-main{
   flex:1;
   min-width:0;
-  padding-right:2rem;
+  padding-right:0;
 }
+
+
 .glossary-topbar{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:2.5rem;
@@ -768,63 +769,6 @@ body::after{
   font-weight:300;
 }
 
-/* Glossary sidebar */
-.glossary-sidebar{
-  width:58px;
-  flex-shrink:0;
-  position:sticky;
-  top:0;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  align-items:center;
-  padding:1.5rem 0;
-  overflow:hidden;
-}
-/* Glossary sidebar */
-.glossary-sidebar{
-  width:58px;
-  flex-shrink:0;
-  position:sticky;
-  top:0;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:1rem 0;
-  overflow:hidden;
-}
-.gls-pill{
-  width:50px;
-  flex:1;
-  max-height:52px;
-  display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--border2);
-  border-radius:10px;
-  background:var(--surface);
-  color:var(--muted);
-  font-family:'DM Mono',monospace;
-  font-size:11px;letter-spacing:0.04em;
-  cursor:pointer;
-  transition:all .2s;
-  user-select:none;
-  flex-shrink:1;
-  margin:2px 0;
-}
-.gls-pill:hover{
-  border-color:var(--accent);
-  color:var(--text);
-  background:rgba(0,212,255,0.05);
-}
-.gls-pill.active{
-  border-color:var(--accent);
-  background:rgba(0,212,255,0.13);
-  color:var(--accent);
-  box-shadow:0 0 14px rgba(0,212,255,0.3),0 0 0 1px rgba(0,212,255,0.1);
-  font-weight:500;
-  transform:scale(1.1);
-}
 
 .kbd-hint{
   display:flex;gap:1.5rem;justify-content:center;
@@ -888,8 +832,8 @@ kbd{
         <div class="glossary-count" id="glossary-count"></div>
         <div id="glossary-body"></div>
       </div>
-      <div class="glossary-sidebar" id="glossary-sidebar"></div>
     </div>
+
   </div>
   <div class="lesson-row" id="lesson-row"></div>
   <div class="dir-row" id="dir-row">
@@ -1314,11 +1258,9 @@ function openGlossary(){
   const overlay=document.getElementById('glossary-overlay');
   const body=document.getElementById('glossary-body');
   const countEl=document.getElementById('glossary-count');
-  const sidebar=document.getElementById('glossary-sidebar');
 
   countEl.textContent=`${ALL.length} words · ${Object.keys(LESSON_NAMES).length} lessons`;
 
-  // Build lesson sections
   body.innerHTML=Object.entries(LESSON_NAMES).map(([num,name])=>{
     const words=ALL.filter(x=>x.l===parseInt(num));
     const entries=words.map(w=>`
@@ -1335,23 +1277,12 @@ function openGlossary(){
     </div>`;
   }).join('');
 
-  // Build sidebar pills
-  sidebar.innerHTML=Object.keys(LESSON_NAMES).map(num=>`
-    <button class="gls-pill" id="gls-pill-${num}" onclick="jumpToLesson(${num})" title="Lesson ${num}: ${LESSON_NAMES[num]}">
-      L${num}
-    </button>`).join('');
-
   overlay.classList.add('open');
   overlay.scrollTop=0;
   document.body.style.overflow='hidden';
 
-  // Activate pill 1 immediately
-  setActivePill(1);
-
-  // Set up IntersectionObserver on the overlay scroll container
   if(glossaryObserver) glossaryObserver.disconnect();
   glossaryObserver=new IntersectionObserver((entries)=>{
-    // Find the topmost intersecting lesson
     let best=null,bestTop=Infinity;
     entries.forEach(e=>{
       if(e.isIntersecting){
@@ -1359,61 +1290,43 @@ function openGlossary(){
         if(top<bestTop){bestTop=top;best=e.target;}
       }
     });
-    if(best){
-      setActivePill(best.dataset.lesson);
-    }
   },{root:overlay,threshold:0.15});
 
   document.querySelectorAll('.glossary-lesson').forEach(el=>glossaryObserver.observe(el));
 }
 
-function setActivePill(num){
-  document.querySelectorAll('.gls-pill').forEach(p=>p.classList.remove('active'));
-  const pill=document.getElementById('gls-pill-'+num);
-  if(pill){
-    pill.classList.add('active');
-    // Keep active pill visible within sidebar (scroll sidebar if needed)
-    pill.scrollIntoView({block:'nearest'});
-  }
-}
-
 function smoothScrollOverlay(overlay, toY, duration){
-  const startY = overlay.scrollTop;
-  const diff = toY - startY;
-  if(Math.abs(diff) < 1) return;
-  const startTime = performance.now();
+  const startY=overlay.scrollTop;
+  const diff=toY-startY;
+  if(Math.abs(diff)<1) return;
+  const startTime=performance.now();
   function step(now){
-    const t = Math.min((now - startTime) / duration, 1);
-    // ease-in-out cubic
-    const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-    overlay.scrollTop = startY + diff * ease;
-    if(t < 1) requestAnimationFrame(step);
+    const t=Math.min((now-startTime)/duration,1);
+    const ease=t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    overlay.scrollTop=startY+diff*ease;
+    if(t<1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
 function jumpToLesson(num){
-  const overlay = document.getElementById('glossary-overlay');
-  const target  = document.getElementById('gl-lesson-' + num);
-  const header  = document.getElementById('gl-header-' + num);
-  if(!target || !overlay) return;
+  const overlay=document.getElementById('glossary-overlay');
+  const target=document.getElementById('gl-lesson-'+num);
+  const header=document.getElementById('gl-header-'+num);
+  if(!target||!overlay) return;
 
-  // getBoundingClientRect is viewport-relative; overlay is fixed at top:0
-  const targetTop   = target.getBoundingClientRect().top;
-  const overlayTop  = overlay.getBoundingClientRect().top;
-  const destination = overlay.scrollTop + targetTop - overlayTop - 48;
+  const targetTop=target.getBoundingClientRect().top;
+  const overlayTop=overlay.getBoundingClientRect().top;
+  const destination=overlay.scrollTop+targetTop-overlayTop-48;
+  smoothScrollOverlay(overlay,Math.max(0,destination),520);
 
-  smoothScrollOverlay(overlay, Math.max(0, destination), 520);
-
-  // Bounce animation on the lesson header after scroll settles
   setTimeout(()=>{
     header.classList.remove('flash');
     void header.offsetWidth;
     header.classList.add('flash');
-    setTimeout(()=>header.classList.remove('flash'), 700);
-  }, 380);
+    setTimeout(()=>header.classList.remove('flash'),700);
+  },380);
 
-  setActivePill(num);
 }
 
 function closeGlossary(){
