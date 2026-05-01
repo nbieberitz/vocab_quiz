@@ -1394,7 +1394,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let fbUser = null;
-let sessionStart = null;
+let minuteTimer = null;
 
 auth.signInAnonymously().then(async result => {
   fbUser = result.user;
@@ -1411,7 +1411,7 @@ auth.signInAnonymously().then(async result => {
       const userNumber = count + 1;
       t.set(statsRef, {
         totalUsers: userNumber,
-        totalTimeSeconds: 0,
+        totalTime: 0,
         totalQuestionsAnswered: 0,
         totalCorrectAnswers: 0
       }, { merge: true });
@@ -1419,7 +1419,7 @@ auth.signInAnonymously().then(async result => {
         userNumber,
         firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
         lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        totalTimeSeconds: 0,
+        totalTime: 0,
         totalQuestionsAnswered: 0,
         totalCorrectAnswers: 0,
         sessionCount: 1
@@ -1431,39 +1431,30 @@ auth.signInAnonymously().then(async result => {
       sessionCount: firebase.firestore.FieldValue.increment(1)
     });
   }
-  sessionStart = Date.now();
+  startMinuteTimer();
 }).catch(err => console.warn('Firebase auth error:', err));
 
-function flushTime() {
-  if (!fbUser || !sessionStart) return;
-  const elapsed = Math.round((Date.now() - sessionStart) / 1000);
-  if (elapsed < 1) return;
-  sessionStart = Date.now();
-  const inc = firebase.firestore.FieldValue.increment(elapsed);
-  db.collection('users').doc(fbUser.uid).update({ totalTimeSeconds: inc });
-  db.collection('stats').doc('global').update({ totalTimeSeconds: inc });
+// Increments totalTime by 1 (minute) every 60 seconds while tab is visible
+function startMinuteTimer() {
+  if (minuteTimer) clearInterval(minuteTimer);
+  minuteTimer = setInterval(() => {
+    if (!fbUser) return;
+    const inc = firebase.firestore.FieldValue.increment(1);
+    db.collection('users').doc(fbUser.uid).update({ totalTime: inc });
+    db.collection('stats').doc('global').update({ totalTime: inc });
+  }, 60000);
 }
 
-function trackAnswer(correct) {
-  if (!fbUser) return;
-  const userRef = db.collection('users').doc(fbUser.uid);
-  const statsRef = db.collection('stats').doc('global');
-  const inc = firebase.firestore.FieldValue.increment;
-  userRef.update({
-    totalQuestionsAnswered: inc(1),
-    ...(correct ? { totalCorrectAnswers: inc(1) } : {})
-  });
-  statsRef.update({
-    totalQuestionsAnswered: inc(1),
-    ...(correct ? { totalCorrectAnswers: inc(1) } : {})
-  });
-}
-
+// totalTime is stored as total minutes. To display: Math.floor(t/60) + " Hours, " + (t%60) + " Minutes"
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') flushTime();
-  else sessionStart = Date.now();
+  if (document.visibilityState === 'hidden') {
+    clearInterval(minuteTimer);
+    minuteTimer = null;
+  } else {
+    startMinuteTimer();
+  }
 });
-window.addEventListener('beforeunload', flushTime);
+window.addEventListener('beforeunload', () => clearInterval(minuteTimer));
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
