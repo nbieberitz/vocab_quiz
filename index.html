@@ -150,7 +150,8 @@ body.light .flash-card::before{
 .name-modal-desc{
   font-family:'DM Mono',monospace;
   font-size:11px;letter-spacing:0.06em;
-  color:var(--muted);
+  color:var(--text);
+  opacity:0.7;
   line-height:1.7;
 }
 .name-modal-input{
@@ -955,7 +956,7 @@ kbd{
     <div class="name-modal">
       <div class="name-modal-title">OPTIONAL <em>DATA</em></div>
       <p class="name-modal-desc">This allows minor optional data to be sent to the developer to help improve the website if needed.</p>
-      <input class="name-modal-input" id="name-modal-input" type="text" placeholder="Your name" maxlength="60" oninput="onNameInput()">
+      <input class="name-modal-input" id="name-modal-input" type="text" placeholder="Your name" maxlength="60" oninput="onNameInput()" onkeydown="if(event.key==='Enter'&&!document.getElementById('name-modal-submit').disabled)submitName()">
       <div id="name-modal-thanks" class="name-modal-thanks" style="display:none">✓ Thanks! Your name has been saved.</div>
       <div class="name-modal-actions" id="name-modal-actions">
         <button class="name-modal-cancel" onclick="closeNameModal()">Cancel</button>
