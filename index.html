@@ -782,8 +782,23 @@ body::after{
   padding:1.5rem 0;
   overflow:hidden;
 }
+/* Glossary sidebar */
+.glossary-sidebar{
+  width:58px;
+  flex-shrink:0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:1rem 0;
+  overflow:hidden;
+}
 .gls-pill{
-  width:50px;height:36px;
+  width:50px;
+  flex:1;
+  max-height:52px;
   display:flex;align-items:center;justify-content:center;
   border:1px solid var(--border2);
   border-radius:10px;
@@ -794,7 +809,8 @@ body::after{
   cursor:pointer;
   transition:all .2s;
   user-select:none;
-  flex-shrink:0;
+  flex-shrink:1;
+  margin:2px 0;
 }
 .gls-pill:hover{
   border-color:var(--accent);
