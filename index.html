@@ -1490,6 +1490,7 @@ startSession();
 setTheme(localStorage.getItem('vocab_theme')||'dark');
 
 document.addEventListener('keydown', e => {
+  if (document.getElementById('name-modal-overlay').classList.contains('open')) return;
   const key = e.key.toUpperCase();
   if(mode === 'quiz') {
     // A/B/C/D to pick an answer
