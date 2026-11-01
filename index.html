@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://us-central1-vocabulary-study-tool.cloudfunctions.net" crossorigin>
 <title>Vocab Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg:#05080f;
@@ -1322,110 +1321,6 @@ kbd{
 }
 
 /* ── Save / Load Code Modal ──────────────────────────────────────────────── */
-.savecode-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(5,8,15,0.82);
-  z-index:200;
-  align-items:center;justify-content:center;
-  backdrop-filter:blur(6px);
-  animation:fadeUp .2s ease both;
-}
-.savecode-overlay.open{display:flex;}
-.savecode-modal{
-  background:var(--surface);
-  border:1px solid var(--border2);
-  border-radius:20px;
-  padding:2rem;
-  width:min(520px,92vw);
-  box-shadow:0 8px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(0,200,255,0.06);
-  display:flex;flex-direction:column;gap:1.4rem;
-}
-.savecode-topbar{
-  display:flex;align-items:center;justify-content:space-between;
-}
-.savecode-title{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.8rem;letter-spacing:0.06em;
-  color:var(--text);
-}
-.savecode-title em{font-style:normal;color:var(--accent);}
-.savecode-section-label{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:0.14em;
-  text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:7px;
-}
-.savecode-textarea{
-  width:100%;height:90px;
-  background:var(--bg);
-  border:1px solid var(--border2);
-  border-radius:10px;
-  color:var(--text);
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:0.02em;
-  line-height:1.6;
-  padding:10px 12px;
-  resize:none;
-  outline:none;
-  transition:border-color .15s;
-  word-break:break-all;
-}
-.savecode-textarea:focus{border-color:var(--accent);}
-.savecode-textarea.import-area{height:75px;}
-.savecode-row{display:flex;gap:8px;margin-top:8px;}
-.savecode-btn{
-  padding:8px 18px;
-  border-radius:30px;
-  border:1px solid var(--border2);
-  background:transparent;
-  font-family:'DM Mono',monospace;
-  font-size:11px;letter-spacing:0.07em;
-  text-transform:uppercase;
-  cursor:pointer;transition:all .15s;
-  color:var(--text);
-  white-space:nowrap;
-}
-.savecode-btn:hover{border-color:var(--accent);color:var(--accent);}
-.savecode-btn.primary{
-  background:linear-gradient(135deg,var(--accent),rgba(0,180,220,0.85));
-  border-color:transparent;color:#050810;
-  box-shadow:0 0 14px rgba(0,212,255,0.3);
-}
-.savecode-btn.primary:hover{filter:brightness(1.08);box-shadow:0 0 20px rgba(0,212,255,0.45);}
-.savecode-btn.danger{border-color:rgba(255,92,122,0.4);color:var(--wrong);}
-.savecode-btn.danger:hover{background:var(--wrong-bg);}
-.savecode-divider{
-  border:none;border-top:1px solid var(--border);
-  margin:0;
-}
-.savecode-status{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:0.07em;
-  text-transform:uppercase;
-  padding:6px 12px;
-  border-radius:20px;
-  display:none;
-}
-.savecode-status.ok{
-  display:inline-block;
-  background:var(--correct-bg);
-  border:1px solid var(--correct-border);
-  color:var(--correct);
-}
-.savecode-status.err{
-  display:inline-block;
-  background:var(--wrong-bg);
-  border:1px solid var(--wrong-border);
-  color:var(--wrong);
-}
-.savecode-hint{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:0.05em;
-  color:var(--muted);
-  line-height:1.7;
-  margin-top:2px;
-}
 /* ── Spam protection toast ── */
 #spam-toast{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
@@ -1436,17 +1331,254 @@ kbd{
   white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.25);
 }
 #spam-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Loading spinner ── */
+.ld-wrap{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;min-height:180px;
+}
+.ld-spinner{
+  width:28px;height:28px;
+  border:2.5px solid var(--border2);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:ld-spin .7s linear infinite;
+}
+.ld-label{
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--muted);opacity:0.7;
+}
+@keyframes ld-spin{to{transform:rotate(360deg);}}
+
+/* ── Quiz list screen ── */
+.screen{display:none;min-height:100vh;padding:2.5rem 1.5rem;}
+.screen.active{display:block;}
+.list-wrap{max-width:680px;margin:0 auto;}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.list-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:0.05em;color:var(--text);}
+.list-title em{color:var(--accent);font-style:normal;}
+.quiz-card{
+  background:var(--surface);border:1px solid var(--border2);border-radius:14px;
+  padding:1.4rem 1.6rem;margin-bottom:1rem;cursor:pointer;
+  transition:border-color .18s,transform .18s,box-shadow .18s;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+.quiz-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,212,255,0.08);}
+.quiz-card-info{flex:1;}
+.quiz-card-title{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;color:var(--text);margin-bottom:0.3rem;}
+.quiz-card-meta{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.quiz-card-arrow{font-size:1.2rem;color:var(--accent);opacity:0.6;}
+.submissions-section{margin-top:2.5rem;}
+.submissions-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+.submission-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.2rem;margin-bottom:0.75rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+.submission-info{flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.submission-notes{color:var(--text);font-size:12px;margin-bottom:0.3rem;font-family:'DM Sans',sans-serif;}
+.status-badge{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap;
+}
+.status-badge.pending{background:rgba(245,166,35,0.12);color:var(--accent2);}
+.status-badge.published{background:rgba(0,229,160,0.12);color:var(--correct);}
+.submission-delete-btn{
+  background:none;border:1px solid rgba(255,92,122,0.25);border-radius:6px;
+  color:var(--wrong);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;
+  text-transform:uppercase;padding:3px 9px;cursor:pointer;white-space:nowrap;
+  transition:background .15s,border-color .15s;flex-shrink:0;
+}
+.submission-delete-btn:hover{background:rgba(255,92,122,0.1);border-color:rgba(255,92,122,0.5);}
+.submission-delete-btn:disabled{opacity:0.4;cursor:default;}
+
+/* ── Submit form screen ── */
+.form-wrap{max-width:580px;margin:0 auto;}
+.form-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:0.05em;color:var(--text);margin-bottom:0.3rem;}
+.form-subtitle{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2rem;}
+.form-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;display:block;}
+.upload-zone{
+  border:2px dashed var(--border2);border-radius:12px;padding:2rem;text-align:center;
+  cursor:pointer;transition:border-color .18s,background .18s;margin-bottom:1.5rem;
+  position:relative;
+}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(0,212,255,0.03);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-zone-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.upload-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem;}
+.upload-thumb{
+  width:72px;height:72px;border-radius:8px;object-fit:cover;
+  border:1px solid var(--border2);position:relative;display:inline-block;
+}
+.upload-thumb-wrap{position:relative;display:inline-block;}
+.upload-thumb-remove{
+  position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;
+  background:var(--wrong);border:none;cursor:pointer;font-size:10px;color:#fff;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+.form-textarea{
+  width:100%;min-height:120px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:10px;padding:0.85rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:14px;resize:vertical;box-sizing:border-box;outline:none;
+  transition:border-color .18s;margin-bottom:1.5rem;
+}
+.form-textarea:focus{border-color:var(--accent);}
+.form-checkbox-row{display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1.75rem;cursor:pointer;}
+.form-checkbox-row input[type=checkbox]{margin-top:2px;accent-color:var(--accent);width:15px;height:15px;cursor:pointer;}
+.form-checkbox-label{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);line-height:1.5;}
+.form-actions{display:flex;gap:0.75rem;}
+.form-submit-btn{
+  flex:1;padding:0.75rem 1.5rem;background:var(--accent);color:#000;
+  font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;
+  border:none;border-radius:8px;cursor:pointer;font-weight:500;
+  transition:opacity .18s;
+}
+.form-submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.form-cancel-btn{
+  padding:0.75rem 1.25rem;background:transparent;color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;
+  border:1px solid var(--border2);border-radius:8px;cursor:pointer;
+  transition:border-color .18s,color .18s;
+}
+.form-cancel-btn:hover{border-color:var(--accent);color:var(--text);}
+
+/* ── Back button ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--muted);background:transparent;border:none;cursor:pointer;
+  padding:0;transition:color .18s;margin-bottom:1.5rem;
+}
+.back-btn:hover{color:var(--accent);}
+
+/* ── Mid-quiz leave warning modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:16px;
+  padding:2rem;max-width:360px;width:100%;
+}
+.modal-title{font-family:'DM Sans',sans-serif;font-weight:500;font-size:1rem;color:var(--text);margin-bottom:0.6rem;}
+.modal-body{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem;}
+.modal-actions{display:flex;gap:0.75rem;}
+.modal-stay{
+  flex:1;padding:0.65rem;background:var(--accent);color:#000;
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+  border:none;border-radius:8px;cursor:pointer;font-weight:500;
+}
+.modal-leave{
+  flex:1;padding:0.65rem;background:transparent;color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+  border:1px solid var(--border2);border-radius:8px;cursor:pointer;
+  transition:border-color .18s,color .18s;
+}
+.modal-leave:hover{border-color:var(--wrong);color:var(--wrong);}
+
+#loading-screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:22px;
+  background:var(--bg);
+  z-index:10000;
+  transition:opacity 0.35s ease;
+}
+#loading-screen .ld-spinner{
+  width:44px;height:44px;
+  border-width:3px;
+}
+#loading-screen .ld-label{
+  font-size:12px;opacity:0.5;
+}
+#loading-screen.fade-out{opacity:0;pointer-events:none;}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .ld-spinner{animation-duration:.7s!important;animation-iteration-count:infinite!important}
+}
 </style>
 </head>
 <body>
+<div id="loading-screen">
+  <div class="ld-spinner"></div>
+  <div class="ld-label">Preparing quiz…</div>
+</div>
+
+<!-- ── Leave-quiz warning modal ── -->
+<div class="modal-overlay" id="leave-modal">
+  <div class="modal-box">
+    <div class="modal-title">Leave this quiz?</div>
+    <div class="modal-body">You're mid-quiz — your session progress won't be saved. Leave anyway?</div>
+    <div class="modal-actions">
+      <button class="modal-stay"  onclick="closeLeaveModal()">Stay</button>
+      <button class="modal-leave" onclick="confirmLeave()">Leave</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quiz list screen ── -->
+<div id="screen-list" class="screen">
+  <div class="list-wrap">
+    <div class="list-header">
+      <div class="list-title">VOCAB <em>QUIZZES</em></div>
+      <button class="rbtn" onclick="navigate('submit')">+ Submit New Quiz</button>
+    </div>
+    <div id="quiz-cards">
+      <div class="ld-wrap" style="min-height:120px"><div class="ld-spinner"></div></div>
+    </div>
+    <div id="my-submissions-section" class="submissions-section" style="display:none">
+      <div class="submissions-title">My Submissions</div>
+      <div id="my-submissions-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Submit form screen ── -->
+<div id="screen-submit" class="screen">
+  <div class="form-wrap">
+    <button class="back-btn" onclick="navigate('')">← Back to quizzes</button>
+    <div class="form-title">SUBMIT A QUIZ</div>
+    <div class="form-subtitle">Upload textbook photos · Add notes · We'll do the rest</div>
+
+    <label class="form-label">Images (up to 10)</label>
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="image-input" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif" multiple>
+      <div class="upload-zone-label" id="upload-zone-label">Click or drag images here</div>
+      <div class="upload-previews" id="upload-previews"></div>
+    </div>
+
+    <label class="form-label" for="submission-notes">Notes</label>
+    <textarea class="form-textarea" id="submission-notes" maxlength="2000" placeholder="Describe what these words are for — class, chapter, topic, anything helpful…"></textarea>
+
+    <label class="form-checkbox-row">
+      <input type="checkbox" id="tag-name-checkbox" onchange="toggleNameField()">
+      <span class="form-checkbox-label">Tag my name on this public submission</span>
+    </label>
+    <div id="name-field-wrap" style="display:none;margin-bottom:1.75rem;">
+      <label class="form-label" for="submission-name">Your name (required)</label>
+      <input type="text" id="submission-name" maxlength="40" class="form-textarea" style="min-height:unset;height:42px;resize:none;" placeholder="Enter your name…">
+    </div>
+
+    <div class="form-actions">
+      <button class="form-cancel-btn" onclick="navigate('')">Cancel</button>
+      <button class="form-submit-btn" id="submit-btn" onclick="submitQuizForm()">Submit</button>
+    </div>
+    <div id="submit-status" style="margin-top:1rem;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);"></div>
+  </div>
+</div>
+
 <div class="orb-bottom"></div>
 <div class="wrap">
   <div class="header">
     <div class="logo-wrap">
+      <button class="back-btn" onclick="navigate('')">← All Quizzes</button>
       <span class="logo-eyebrow">English Final · Vocabulary</span>
       <div class="logo">VOCABULARY <em>QUIZ</em></div>
       <span class="logo-sub">150 words &nbsp;·&nbsp; 15 lessons</span>
-      <span class="version-tag">v3.1.2</span>
+      <span class="version-tag">v3.2.0</span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1480,54 +1612,9 @@ kbd{
           <span id="theme-icon">🌙</span>
         </div>
       </div>
-      <div style="display:flex;justify-content:flex-end">
-        <button class="glossary-btn" onclick="openSaveCode()" title="Export / import your progress">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 10v1.5A0.5.0.5 0 0 0 2.5 12h9a0.5.0.5 0 0 0 0.5-0.5V10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-          Save/Load Data
-        </button>
-      </div>
-
     </div>
   </div>
 
-  <!-- Save / Load Code modal -->
-  <div class="savecode-overlay" id="savecode-overlay" onclick="if(event.target===this)closeSaveCode()">
-    <div class="savecode-modal">
-      <div class="savecode-topbar">
-        <div class="savecode-title">Save / Load <em>Data</em></div>
-        <button class="savecode-btn" onclick="closeSaveCode()">✕ Close</button>
-      </div>
-
-      <!-- Export -->
-      <div>
-        <div class="savecode-section-label">Export</div>
-        <div class="savecode-row" style="margin-top:0">
-          <button class="savecode-btn primary" onclick="doCopy()">Copy Save Code</button>
-          <span class="savecode-status" id="savecode-copy-status"></span>
-        </div>
-        <div class="savecode-hint" style="margin-top:8px">
-          Copies all your progress to the clipboard — paste it on another device to transfer.
-        </div>
-      </div>
-
-      <hr class="savecode-divider">
-
-      <!-- Import -->
-      <div>
-        <div class="savecode-section-label">Import</div>
-        <div class="savecode-row" style="margin-top:0;align-items:center">
-          <button class="savecode-btn primary" onclick="doPaste()">Paste Save Code</button>
-          <span class="savecode-status" id="savecode-import-status"></span>
-        </div>
-        <div class="savecode-hint" style="margin-top:8px">
-          Reads a save code from your clipboard and applies it to this device.
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Heatmap overlay -->
   <div class="glossary-overlay" id="heatmap-overlay" style="opacity:0">
@@ -1622,11 +1709,13 @@ kbd{
   <div style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border2);text-align:center;">
     <p style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.07em;color:var(--text);opacity:0.55;line-height:2;">
       Have a problem, suggestion, or spot a mistake in a word or definition?<br>
-      Contact <a href="https://mail.google.com/mail/?view=cm&to=bieberna27@collegedaleacademy.com" target="_blank" style="color:var(--accent);text-decoration:none;opacity:1;transition:opacity .15s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">bieberna27@collegedaleacademy.com</a>
+      Contact <a href="https://mail.google.com/mail/?view=cm&to=bieberna27@collegedaleacademy.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;opacity:1;transition:opacity .15s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">bieberna27@collegedaleacademy.com</a>
       <span style="display:block;margin-top:5px;font-size:10px;opacity:0.6;letter-spacing:0.06em;">All feedback is welcome and will be looked into.</span>
     </p>
   </div>
 </div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 (function(){
 const LESSON_NAMES={1:'Language',2:'Possibility',3:'Change',4:'Mind & Knowledge',5:'Avoidance',6:'Sequence',7:'Criticism',8:'Responsibility',9:'Behavior',10:'Skill',11:'Commands',12:'Size',13:'Imitation',14:'Pairs',15:'Reversal'};
@@ -1808,10 +1897,21 @@ const ALL=[
 ];
 
 const LETTERS=['A','B','C','D'];
+const reEsc=v=>String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let mode='quiz',dir='word',quizOrder='random',selectedLesson='all',pool=[],orderedPool=[],queue=[],current=0,score=0,answered=false,wrong=[],flashIdx=0,flashState=0,flashShuffled=false;
-let _currentCorrect = null; // set internally at render time — never trusted from pick() caller
+
+// ── Server-side quiz state ────────────────────────────────────────────────────
+// The correct answer NEVER lives in the browser. The server signs each question
+// with HMAC; pick() sends the user's choice to submitAnswer which grades it.
+let _currentQuestionId   = null; // HMAC-signed token from getQuestion
+let _currentQuestionData = null; // full question payload (no correct answer)
+let _askedWords          = [];   // quiz mode: words already shown this session
+let _drillWords          = null; // null = normal pool; string[] = restricted drill
+let _isLoadingQuestion   = false;
 
 /* ── Spam protection ─────────────────────────────────────────────────────── */
+const DEBUG_DISABLE_SPAM = false; // set true to bypass rate limiter during testing
 const SPAM_WINDOW_MS   = 10000; // rolling window to measure speed
 const SPAM_THRESHOLD   = 10;    // actions within that window = spam
 const SPAM_COOLDOWN_MS = 3000;  // how long the next-btn stays locked after warning
@@ -1853,6 +1953,7 @@ function _lockNextBtn(ms){
 /** Call this on every answer pick or next-question action.
  *  Returns true if the action is spam and should be suppressed. */
 function _spamCheck(){
+  if(DEBUG_DISABLE_SPAM) return false;
   if(_spamLocked) return true;
   const now = Date.now();
   _spamTimes.push(now);
@@ -1876,14 +1977,19 @@ let wordStats = {}; // { word: { seen: N, correct: N, lastSeen: timestamp } } �
 
 // ─── Word selection & hidden words ───────────────────────────────────────────
 let selectedWords = new Set();
-let hiddenWords   = new Set(JSON.parse(localStorage.getItem('vocab_hidden')||'[]'));
+let hiddenWords = new Set((()=>{try{return JSON.parse(localStorage.getItem('vocab_hidden')||'[]')}catch(e){return []}})());
 
 function saveHidden(){
   localStorage.setItem('vocab_hidden', JSON.stringify([...hiddenWords]));
   if(fbUser){
-    db.collection("userData").doc(fbUser.uid)
-      .update({hiddenWords:[...hiddenWords]}).catch(()=>{});
+    _cfSaveHidden({ hiddenWords: [...hiddenWords] }).catch(()=>{});
   }
+}
+
+function restoreWord(word){
+  hiddenWords.delete(word);
+  saveHidden();
+  openGlossary();
 }
 
 function toggleWordSelect(word){
@@ -1923,20 +2029,20 @@ function clearSelection(){
 
 function drillSelected(){
   if(!selectedWords.size) return;
-  const words = [...selectedWords].map(w=>ALL.find(x=>x.w===w)).filter(Boolean);
+  const words=[...selectedWords];
   selectedWords.clear();
   closeGlossary();
   closeHeatmap();
-  // Start a focused drill session with just these words
   mode='quiz';
   document.getElementById('mode-quiz').className='mode-btn active';
   document.getElementById('mode-flash').className='mode-btn';
   document.getElementById('dir-row').style.display='flex';
   document.getElementById('order-row').style.display='flex';
   document.getElementById('lesson-row').style.display='flex';
-  queue=shuffle([...words]);
-  current=0;score=0;answered=false;wrong=[];
-  render();
+  _drillWords=words;_prefetchPromise=null;
+  score=0;answered=false;wrong=[];_askedWords=[];
+  _currentQuestionId=null;_currentQuestionData=null;
+  loadNextQuestion();
 }
 
 function hideSelected(){
@@ -1984,7 +2090,28 @@ let sessionCorrectAnswers = 0;
 // trackAnswer() accumulates into these; flushTime() drains them in a single write.
 let pendingAnswers = 0;
 let pendingCorrect = 0;
-let flushCount = 0; // increments each flush; syncGlobalStats runs every 5th flush (5 min)
+let _prefetchPromise = null; // holds in-flight getQuestion call for instant next-question render
+let _readyQuestion   = null; // first question pre-loaded before UI shows — renders with no spinner
+let _initializing    = true; // true until auth + questions are ready; blocks loadNextQuestion
+
+// ── Show the right initial screen immediately, before auth fires ──────────────
+{
+  const _startHash = window.location.hash.replace('#','');
+  if(!_startHash.startsWith('quiz-')){
+    // List or submit screen — hide loading overlay immediately, show list right away
+    const _ls = document.getElementById('loading-screen');
+    if(_ls) _ls.style.display = 'none';
+    document.getElementById('screen-list').classList.add('active');
+    _initializing = false; // list screen doesn't need to block on question fetching
+  }
+}
+
+function hideLoadingScreen(){
+  const el=document.getElementById('loading-screen');
+  if(!el) return;
+  el.classList.add('fade-out');
+  setTimeout(()=>el.remove(), 400);
+}
 
 function toggleSettings(){
   const panel = document.getElementById('settings-panel');
@@ -2062,75 +2189,6 @@ function getPool(){
 }
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-// Returns `count` plausible distractors for a given item.
-// Priority: (1) curated confusion-pair words — students need to learn to tell these apart.
-// (2) same-lesson words for thematic relevance. (3) random fill.
-// Confusion history and definition overlap are intentionally excluded here —
-// those signals drive *which word gets asked*, not *how hard the wrong answers are*.
-function smartDistractors(item, count) {
-  // Pull in any words this item is known to be confused with — high priority
-  const confusedPairs=(CONFUSED_MAP[item.w]||[])
-    .map(cw=>ALL.find(x=>x.w===cw))
-    .filter(Boolean);
-  const confusedSet=new Set(confusedPairs.map(x=>x.w));
-
-  const sameLesson=shuffle(ALL.filter(x=>x.w!==item.w && x.l===item.l && !confusedSet.has(x.w)));
-  const otherWords=shuffle(ALL.filter(x=>x.w!==item.w && x.l!==item.l && !confusedSet.has(x.w)));
-
-  // Confused pairs first, then same-lesson, then random fill
-  const pool=[...shuffle(confusedPairs),...sameLesson,...otherWords.slice(0,count*3)];
-  return pool.slice(0,count);
-}
-
-function nextAdaptiveWord(){
-  // Every adaptiveNextReview questions, insert a high-accuracy review word
-  const isReviewSlot = adaptiveCount > 0 && adaptiveCount % adaptiveNextReview === 0;
-  if(isReviewSlot){
-    adaptiveNextReview = Math.floor(Math.random()*3)+4;
-    const reviewPool = ALL.filter(w=>{
-      if(adaptiveRecentWords.includes(w.w)) return false;
-      const s = wordStats[w.w];
-      return s && s.seen >= 2 && (s.correct/s.seen) >= 0.75;
-    });
-    if(reviewPool.length > 0) return reviewPool[Math.floor(Math.random()*reviewPool.length)];
-  }
-
-  // Build weighted pool — exclude last 12 words to spread selection out
-  const candidates = ALL.filter(item => !adaptiveRecentWords.includes(item.w));
-  const weights = candidates.map(item => {
-    const s = wordStats[item.w];
-    if(!s || s.seen === 0) return 3;      // unseen
-    const p = s.correct / s.seen;
-    let w;
-    if(p < 0.5)  w = 4;               // struggling — moderately prioritized
-    else if(p < 0.75) w = 2.5;        // needs work
-    else if(p < 0.9)  w = 1;          // decent
-    else w = 0.4;                      // mastered — still appears occasionally
-    // Confusion boost: if this word has been repeatedly confused with other words,
-    // it clearly needs more drilling — push its weight up proportionally.
-    if(s.confusedWith){
-      const totalConfusions = Object.values(s.confusedWith).reduce((a,b)=>a+b, 0);
-      if(totalConfusions > 0) w *= (1 + Math.min(totalConfusions * 0.25, 2)); // cap at 3× boost
-    }
-    // Recency boost: words not seen in a while get higher priority
-    if (s.lastSeen) {
-      const daysSince = (Date.now() - s.lastSeen) / 86400000;
-      if (daysSince > 7)  w *= 2.0;   // unseen for a week — strong boost
-      else if (daysSince > 3) w *= 1.5; // a few days — moderate boost
-    }
-    return w;
-  });
-
-  // Proper weighted random — no array slot inflation
-  const total = weights.reduce((a,b) => a+b, 0);
-  let rand = Math.random() * total;
-  for(let i = 0; i < candidates.length; i++){
-    rand -= weights[i];
-    if(rand <= 0) return candidates[i];
-  }
-  return candidates[candidates.length-1];
-}
-
 function setMode(m){
   mode=m;
   document.getElementById('mode-quiz').className='mode-btn'+(m==='quiz'?' active':'');
@@ -2148,315 +2206,364 @@ function setMode(m){
 function startSession(){
   orderedPool=getPool();
   pool=flashShuffled?shuffle([...orderedPool]):[...orderedPool];
-  queue=quizOrder==='ordered'?[...orderedPool]:shuffle([...orderedPool]);
-  current=0;score=0;answered=false;wrong=[];flashIdx=0;flashState=0;
+  score=0;answered=false;wrong=[];flashIdx=0;flashState=0;
+  // Reset server-side quiz state
+  _askedWords=[];_drillWords=null;
+  _currentQuestionId=null;_currentQuestionData=null;
+  _prefetchPromise=null;
+  _isLoadingQuestion=false; // reset in case a previous attempt left it stuck
+  // Note: _readyQuestion is intentionally NOT cleared here.
+  // loadQuizAndStart sets it just before calling startSession so the first question renders instantly.
+  // In all other cases (mode/lesson switches) it will already be null.
+  adaptiveCount=0;adaptiveScore=0;adaptiveStreak=0;adaptiveBestStreak=0;
+  adaptiveRecentWords=[];adaptiveNextReview=Math.floor(Math.random()*3)+4;
   render();
-}
-
-function makeOptions(item,showWord){
-  const p=getPool();
-  if(showWord){
-    // show definition, pick correct word from wrong word choices
-    const w3=shuffle(p.filter(x=>x.w!==item.w)).slice(0,3);
-    return shuffle([item,...w3]);
-  } else {
-    // show word, pick correct definition from wrong definition choices
-    const w3=shuffle(p.filter(x=>x.w!==item.w)).slice(0,3);
-    return shuffle([{...item,_isCorrect:true},...w3.map(x=>({...x,_isCorrect:false}))]);
-  }
 }
 
 function render(){
   const app=document.getElementById('app');
   if(mode==='flash'){renderFlash(app);return;}
-  if(mode==='adaptive'){renderAdaptive(app);return;}
-  if(current>=queue.length){renderResult(app);return;}
-  const item=queue[current];
-  // determine direction for this question
-  const showDef = dir==='word' ? false : dir==='def' ? true : Math.random()<0.5;
-  // attach direction to item for pick() to use
-  item._showDef=showDef;
-  const opts=smartDistractors(item, 3);
-  opts.push(item);
-  const shuffled=shuffle(opts);
-  const pct=Math.round((current/queue.length)*100);
-  const lname=selectedLesson==='all'?`Lesson ${item.l} · ${LESSON_NAMES[item.l]}`:LESSON_NAMES[item.l];
-  const dirLabel=showDef?'Which word fits this definition?':'Select the correct definition:';
-  const prompt=showDef?`<div class="question">${dirLabel}</div><div class="question-word" style="font-size:clamp(1rem,3vw,1.25rem);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;letter-spacing:normal;color:var(--text);opacity:0.9">${item.d}</div>`:
-    `<div class="question">${dirLabel}</div><div class="question-word">${item.w}</div>`;
-  _currentCorrect = showDef ? item.w : item.d;
-  const optsHtml=shuffled.map((o,i)=>{
-    const label=showDef?o.w:o.d;
-    const safeLabel=label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const safeKey=(showDef?o.w:o.d).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<button class="opt" id="opt-${i}" onclick="pick(${i},'${safeKey}')"><span class="opt-letter">${LETTERS[i]}</span>${label}</button>`;
-  }).join('');
-  app.innerHTML=`
-    <div class="stats">
-      <div class="stat"><div class="stat-label">Progress</div><div class="stat-val">${current+1}<span style="font-size:14px;color:var(--muted)">/${queue.length}</span></div></div>
-      <div class="stat"><div class="stat-label">Correct</div><div class="stat-val">${score}</div></div>
-      <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-val">${current>0?Math.round(score/current*100):0}<span style="font-size:14px;color:var(--muted)">%</span></div></div>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="quiz-layout">
-      <div class="quiz-left qcard">
-        <div class="lesson-tag">${lname}</div>
-        ${prompt}
-      </div>
-      <div class="quiz-right">
-        <div class="options" id="opts">${optsHtml}</div>
-        <button class="show-ans-btn" id="show-ans-btn" onclick="showAnswer()">I don't know — show answer</button>
-        <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Next Question →</button>
-      </div>
-    </div>
-    <div class="kbd-hint">
-      <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to answer</span>
-      <span><kbd>Space</kbd> to advance</span>
+  loadNextQuestion();
+}
+
+// ── Server-side question loading ──────────────────────────────────────────────
+
+// Fires getQuestion in the background and caches the promise.
+// Called right after submitAnswer resolves (while user reads feedback) and on page load.
+function _firePrefetch(){
+  if(!auth.currentUser||mode==='flash') return;
+  const payload={
+    mode,
+    lesson:selectedLesson,
+    dir,
+    hiddenWords:[...hiddenWords],
+    askedWords: mode==='quiz'?[..._askedWords]:[],
+    recentWords:mode==='adaptive'?[...adaptiveRecentWords]:[]
+  };
+  if(_drillWords) payload.drillWords=[..._drillWords];
+  _prefetchPromise=_cfGetQuestion(payload).catch(()=>null);
+}
+
+async function loadNextQuestion(){
+  if(_initializing) return; // startup not done — loading screen is up
+  if(!window.location.hash.startsWith('#quiz-')) return; // no question fetches on list/submit screens
+  if(_isLoadingQuestion) return;
+  _isLoadingQuestion=true;
+  answered=false;
+  const app=document.getElementById('app');
+  try{
+    const payload={
+      mode,
+      lesson:selectedLesson,
+      dir,
+      hiddenWords:[...hiddenWords],
+      askedWords: mode==='quiz'?_askedWords:[],
+      recentWords:mode==='adaptive'?adaptiveRecentWords:[]
+    };
+    if(_drillWords) payload.drillWords=_drillWords;
+
+    let res;
+    if(_readyQuestion){
+      // Pre-loaded before UI showed — render instantly, no spinner
+      res=_readyQuestion;
+      _readyQuestion=null;
+    } else {
+      app.innerHTML=`<div class="qcard"><div class="ld-wrap"><div class="ld-spinner"></div><div class="ld-label">Loading question…</div></div></div>`;
+      if(_prefetchPromise){
+        res=await _prefetchPromise;
+        _prefetchPromise=null;
+        if(!res) res=await _cfGetQuestion(payload);
+      } else {
+        res=await _cfGetQuestion(payload);
+      }
+    }
+
+    const q=res.data;
+    if(q.done){renderResult(document.getElementById('app'));return;}
+    _currentQuestionId=q.questionId;
+    _currentQuestionData=q;
+    if(mode==='adaptive'){
+      adaptiveRecentWords.push(q.word);
+      if(adaptiveRecentWords.length>12) adaptiveRecentWords.shift();
+    }
+    renderQuestionFromServer(document.getElementById('app'),q);
+  }catch(err){
+    const msg=err.message&&err.message.includes('unauthenticated')
+      ?'Please sign in to continue.'
+      :'Could not load question — check your connection.';
+    document.getElementById('app').innerHTML=`<div class="qcard" style="text-align:center;padding:2rem">
+      <div style="color:var(--wrong);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1.25rem">${msg}</div>
+      <button class="rbtn" onclick="loadNextQuestion()">↺ Retry</button>
     </div>`;
+  }finally{
+    _isLoadingQuestion=false;
+  }
+}
+
+function renderQuestionFromServer(app,q){
+  const isDefToWord=q.direction==='def-to-word';
+  const prompt=isDefToWord
+    ?`<div class="question">${esc(q.dirLabel)}</div><div class="question-word" style="font-size:clamp(1rem,3vw,1.25rem);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;letter-spacing:normal;color:var(--text);opacity:0.9">${esc(q.promptText)}</div>`
+    :`<div class="question">${esc(q.dirLabel)}</div><div class="question-word">${esc(q.promptText)}</div>`;
+  const optsHtml=q.optionLabels.map((label,i)=>
+    `<button class="opt" id="opt-${i}" onclick="pick(${i})"><span class="opt-letter">${LETTERS[i]}</span>${esc(label)}</button>`
+  ).join('');
+  if(mode==='adaptive'){
+    const accuracy=adaptiveCount>0?Math.round(adaptiveScore/adaptiveCount*100):0;
+    const ws=q.wordHistory;
+    const wordPct=ws&&ws.seen>0?Math.round(ws.correct/ws.seen*100):null;
+    const wordBadge=wordPct!==null
+      ?`<span class="adaptive-word-badge" style="background:${wordPct>=90?'var(--hm-great)':wordPct>=75?'var(--hm-good)':wordPct>=50?'var(--hm-mid)':'var(--hm-low)'}">${wordPct}% hist.</span>`
+      :`<span class="adaptive-word-badge" style="background:var(--hm-unseen);opacity:0.7">New</span>`;
+    app.innerHTML=`
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Questions</div><div class="stat-val">${adaptiveCount+1}</div></div>
+        <div class="stat"><div class="stat-label">Streak</div><div class="stat-val">${adaptiveStreak}<span style="font-size:12px;color:var(--muted)"> best ${adaptiveBestStreak}</span></div></div>
+        <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-val">${accuracy}<span style="font-size:14px;color:var(--muted)">%</span></div></div>
+      </div>
+      <div class="quiz-layout">
+        <div class="quiz-left qcard">
+          <div class="lesson-tag" style="display:flex;align-items:center;gap:8px">${esc(q.lessonName)} ${wordBadge}</div>
+          ${prompt}
+        </div>
+        <div class="quiz-right">
+          <div class="options" id="opts">${optsHtml}</div>
+          <button class="show-ans-btn" id="show-ans-btn" onclick="showAnswer()">I don't know — show answer</button>
+          <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Next Question →</button>
+        </div>
+      </div>
+      <div class="kbd-hint"><span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to answer</span><span><kbd>Space</kbd> to advance</span></div>`;
+  } else {
+    const total=q.totalInPool||0;
+    const done=_askedWords.length;
+    const pct=total>0?Math.round((done/total)*100):0;
+    app.innerHTML=`
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Progress</div><div class="stat-val">${done+1}<span style="font-size:14px;color:var(--muted)">/${total}</span></div></div>
+        <div class="stat"><div class="stat-label">Correct</div><div class="stat-val">${score}</div></div>
+        <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-val">${done>0?Math.round(score/done*100):0}<span style="font-size:14px;color:var(--muted)">%</span></div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="quiz-layout">
+        <div class="quiz-left qcard">
+          <div class="lesson-tag">${esc(q.lessonName)}</div>
+          ${prompt}
+        </div>
+        <div class="quiz-right">
+          <div class="options" id="opts">${optsHtml}</div>
+          <button class="show-ans-btn" id="show-ans-btn" onclick="showAnswer()">I don't know — show answer</button>
+          <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Next Question →</button>
+        </div>
+      </div>
+      <div class="kbd-hint"><span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to answer</span><span><kbd>Space</kbd> to advance</span></div>`;
+  }
 }
 
 function showAnswer(){
   if(answered) return;
-  answered=true;
-  const item=queue[current];
-
-  // Count as wrong — adds to review list and stats
-  wrong.push(item);
-  trackAnswer(false, item.w);
-  if(mode==='adaptive'){adaptiveStreak=0;}
-
-  // Highlight the correct option and attach the example button, same as a normal wrong answer
-  const optEls=document.getElementById('opts').children;
-  const correctLabel=item._showDef ? item.w : item.d;
-  for(let i=0;i<optEls.length;i++){
-    optEls[i].classList.add('disabled');
-    const letter=optEls[i].querySelector('.opt-letter');
-    const labelNode=letter.nextSibling;
-    const label=labelNode?labelNode.textContent.trim():optEls[i].textContent.trim().slice(1);
-    if(label===correctLabel){
-      optEls[i].classList.add('correct');
-      const wrap=document.createElement('div');
-      wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='flex-start';
-      const existingContent=Array.from(optEls[i].childNodes);
-      const inner=document.createElement('div');
-      existingContent.forEach(n=>inner.appendChild(n));
-      wrap.appendChild(inner);
-      const exBtn=document.createElement('button');
-      exBtn.className='example-btn';
-      exBtn.innerHTML=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="5" x2="6" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="3.5" r=".75" fill="currentColor"/></svg>Example sentence`;
-      exBtn.onclick=e=>{e.stopPropagation();showExample(item,exBtn,wrap);};
-      wrap.appendChild(exBtn);
-      optEls[i].appendChild(wrap);
-    }
-  }
-
-  // Re-queue the word 2–5 questions ahead so it comes back this session (quiz mode).
-  // Adaptive handles it automatically via the lowered correct/seen ratio → higher weight.
-  if(mode==='quiz'){
-    const insertAt=Math.min(current + 2 + Math.floor(Math.random()*4), queue.length);
-    queue.splice(insertAt, 0, item);
-  }
-
-  const sab=document.getElementById('show-ans-btn');
-  if(sab) sab.style.display='none';
-  document.getElementById('nxt').style.display='block';
+  pick(-1,'__SKIP__');
 }
 
-function pick(idx,chosen){
+async function pick(idx,chosen){
   if(answered)return;
   if(_spamCheck())return;
-  // Always use the internally-set correct answer — never trust the caller
-  const correct = _currentCorrect;
-  if(!correct) return;
+  if(!_currentQuestionId)return;
+  if(idx>=0&&_currentQuestionData&&_currentQuestionData.optionLabels) chosen=_currentQuestionData.optionLabels[idx];
   answered=true;
-  const isRight=chosen===correct;
-  if(isRight){
-    score++;
-    if(mode==='adaptive'){adaptiveScore++;adaptiveStreak++;if(adaptiveStreak>adaptiveBestStreak)adaptiveBestStreak=adaptiveStreak;}
-  } else {
-    wrong.push(queue[current]);
-    if(mode==='adaptive') adaptiveStreak=0;
-    // Record which word the student confused the correct answer with.
-    // chosen is either a word name (showDef=true) or a definition string (showDef=false).
-    const correctWord = queue[current].w;
-    const showDefNow = queue[current]._showDef;
-    const confusedWithWord = showDefNow
-      ? chosen  // options were words — chosen IS the wrong word
-      : (ALL.find(x => x.d === chosen)?.w || null);  // options were defs — look up which word owns that def
-    if(confusedWithWord && confusedWithWord !== correctWord){
-      if(!wordStats[correctWord]) wordStats[correctWord] = { seen:0, correct:0 };
-      if(!wordStats[correctWord].confusedWith) wordStats[correctWord].confusedWith = {};
-      wordStats[correctWord].confusedWith[confusedWithWord] =
-        (wordStats[correctWord].confusedWith[confusedWithWord] || 0) + 1;
-    }
-  }
-  trackAnswer(isRight, queue[current].w);
+
+  // Disable all options immediately for responsiveness
+  const opts=document.getElementById('opts');
+  const optEls=opts?opts.children:[];
+  for(let i=0;i<optEls.length;i++) optEls[i].classList.add('disabled');
+  if(idx>=0&&optEls[idx]) optEls[idx].style.opacity='0.6';
   const sab=document.getElementById('show-ans-btn');
   if(sab) sab.style.display='none';
-  const item=queue[current];
-  const optEls=document.getElementById('opts').children;
-  for(let i=0;i<optEls.length;i++){
-    optEls[i].classList.add('disabled');
-    const letter=optEls[i].querySelector('.opt-letter');
-    const labelNode=letter.nextSibling;
-    const label=labelNode?labelNode.textContent.trim():optEls[i].textContent.trim().slice(1);
-    if(label===correct){
-      optEls[i].classList.add('correct');
-      // Inject example button below the correct option text
-      const wrap=document.createElement('div');
-      wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.alignItems='flex-start';
-      const existingContent=Array.from(optEls[i].childNodes);
-      const inner=document.createElement('div');
-      existingContent.forEach(n=>inner.appendChild(n));
-      wrap.appendChild(inner);
-      const exBtn=document.createElement('button');
-      exBtn.className='example-btn';
-      exBtn.innerHTML=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="5" x2="6" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="3.5" r=".75" fill="currentColor"/></svg>Example sentence`;
-      exBtn.onclick=e=>{e.stopPropagation();showExample(item,exBtn,wrap);};
-      wrap.appendChild(exBtn);
-      // If wrong answer, check if the chosen word is a known confused pair of the correct word
-      if(!isRight){
-        const showDefNow=item._showDef;
-        const wrongWord=showDefNow?chosen:(ALL.find(x=>x.d===chosen)?.w||null);
-        const siblings=CONFUSED_MAP[item.w];
-        if(wrongWord && siblings && siblings.includes(wrongWord)){
+
+  try{
+    const q=_currentQuestionData;
+    const isDefToWord=q.direction==='def-to-word';
+    // Determine which word the user confused the answer with (for analytics)
+    let confusedWord=null;
+    if(idx>=0&&chosen!=='__SKIP__'){
+      if(isDefToWord){
+        confusedWord=chosen!==q.word?chosen:null;
+      } else {
+        const found=ALL.find(x=>x.d===chosen);
+        confusedWord=found&&found.w!==q.word?found.w:null;
+      }
+    }
+
+    // Fire prefetch immediately — in parallel with submitAnswer.
+    // We know the current word already, so we pre-include it in askedWords/recentWords
+    // so the next question won't repeat it.
+    if(mode!=='flash'){
+      const prefetchPayload={
+        mode,
+        lesson:selectedLesson,
+        dir,
+        hiddenWords:[...hiddenWords],
+        askedWords: mode==='quiz' ? [..._askedWords, q.word] : [],
+        recentWords:mode==='adaptive' ? [...adaptiveRecentWords] : []
+      };
+      if(_drillWords) prefetchPayload.drillWords=[..._drillWords];
+      _prefetchPromise=_cfGetQuestion(prefetchPayload).catch(()=>null);
+    }
+
+    const res=await _cfSubmitAnswer({
+      questionId:_currentQuestionId,
+      chosen:idx<0?'__SKIP__':chosen,
+      confusedWord
+    });
+    const result=res.data;
+
+    // Update local wordStats cache for heatmap/glossary display
+    // (server is the source of truth — we mirror from its response)
+    if(result.word){
+      if(!wordStats[result.word]) wordStats[result.word]={seen:0,correct:0};
+      wordStats[result.word].seen++;
+      if(result.isCorrect) wordStats[result.word].correct++;
+      wordStats[result.word].lastSeen=Date.now();
+      if(!result.isCorrect&&confusedWord){
+        if(!wordStats[result.word].confusedWith) wordStats[result.word].confusedWith={};
+        wordStats[result.word].confusedWith[confusedWord]=(wordStats[result.word].confusedWith[confusedWord]||0)+1;
+      }
+    }
+
+    // Session counters + activity day (wordStats writes handled server-side)
+    trackAnswer(result.isCorrect);
+
+    if(result.isCorrect){
+      score++;
+      if(mode==='adaptive'){adaptiveScore++;adaptiveStreak++;if(adaptiveStreak>adaptiveBestStreak)adaptiveBestStreak=adaptiveStreak;}
+    } else {
+      wrong.push({w:result.word,d:result.definition});
+      if(mode==='adaptive') adaptiveStreak=0;
+    }
+    if(mode==='quiz') _askedWords.push(result.word);
+    if(mode==='adaptive') adaptiveCount++;
+
+    // Apply visual result to option buttons
+    const els=document.getElementById('opts')?.children||[];
+    for(let i=0;i<els.length;i++){
+      const letter=els[i].querySelector('.opt-letter');
+      const labelNode=letter?letter.nextSibling:null;
+      const label=labelNode?labelNode.textContent.trim():els[i].textContent.trim().slice(1);
+      els[i].style.opacity='';
+      if(label===result.correctAnswer){
+        els[i].classList.add('correct');
+        _attachExampleBtn(els[i],result);
+        if(!result.isCorrect&&result.siblings&&confusedWord&&result.siblings.includes(confusedWord)){
           const tip=document.createElement('div');
           tip.className='confusion-tip';
-          tip.innerHTML=`⚠️ <strong>${item.w}</strong> and <strong>${wrongWord}</strong> are commonly confused — review both in <a href="#" onclick="event.stopPropagation();openGlossary();return false;">All Words</a>.`;
-          wrap.appendChild(tip);
+          tip.innerHTML=`⚠️ <strong>${esc(result.word)}</strong> and <strong>${esc(confusedWord)}</strong> are commonly confused — review both in <a href="#" onclick="event.stopPropagation();openGlossary();return false;">All Words</a>.`;
+          els[i].appendChild(tip);
         }
+      } else if(i===idx&&!result.isCorrect){
+        els[i].classList.add('wrong');
+        _attachRevealBtn(els[i],chosen,isDefToWord);
       }
-      optEls[i].appendChild(wrap);
     }
-    else if(i===idx&&!isRight){
-      optEls[i].classList.add('wrong');
-      // Inject reveal button so user can look up the other side of their wrong pick
-      const showDef=item._showDef;
-      const revWrap=document.createElement('div');
-      revWrap.style.cssText='display:flex;flex-direction:column;align-items:flex-start;';
-      const revExisting=Array.from(optEls[i].childNodes);
-      const revInner=document.createElement('div');
-      revExisting.forEach(n=>revInner.appendChild(n));
-      revWrap.appendChild(revInner);
-      const revBtn=document.createElement('button');
-      revBtn.className='example-btn';
-      revBtn.style.cssText='border-color:rgba(255,92,122,0.35);background:rgba(255,92,122,0.07);color:var(--wrong);';
-      const eyeIcon=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><ellipse cx="6" cy="6" rx="5" ry="3.5" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>`;
-      revBtn.innerHTML=showDef?`${eyeIcon}Show Definition`:`${eyeIcon}Show Word`;
-      revBtn.onclick=e=>{
-        e.stopPropagation();
-        revBtn.remove();
-        const revPanel=document.createElement('div');
-        revPanel.className='example-panel';
-        revPanel.style.cssText='border-color:rgba(255,92,122,0.18);background:rgba(255,92,122,0.05);';
-        if(showDef){
-          // Question showed a definition; options were words — reveal def of the wrong word picked
-          const found=ALL.find(x=>x.w===chosen);
-          const def=found?found.d:'No definition found.';
-          revPanel.innerHTML=`<div class="ex-sentence" style="font-family:\'Bebas Neue\',sans-serif;font-size:1.3rem;letter-spacing:0.04em;color:var(--wrong);margin-bottom:4px">${chosen}</div><div class="ex-sentence">${def}</div>`;
-        } else {
-          // Question showed a word; options were definitions — reveal which word the wrong def belongs to
-          const found=ALL.find(x=>x.d===chosen);
-          const word=found?found.w:'Unknown';
-          revPanel.innerHTML=`<div class="ex-sentence" style="font-size:11px;font-family:\'DM Mono\',monospace;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">This definition belongs to:</div><div class="ex-sentence" style="font-family:\'Bebas Neue\',sans-serif;font-size:1.3rem;letter-spacing:0.04em;color:var(--wrong)">${word}</div>`;
-        }
-        revWrap.appendChild(revPanel);
-      };
-      revWrap.appendChild(revBtn);
-      optEls[i].appendChild(revWrap);
+    document.getElementById('nxt').style.display='block';
+
+  }catch(err){
+    // Network or token-expired error — restore the question so user can retry
+    answered=false;
+    const els=document.getElementById('opts')?.children||[];
+    for(let i=0;i<els.length;i++){els[i].classList.remove('disabled');els[i].style.opacity='';}
+    if(sab) sab.style.display='';
+    const expired=err.message&&(err.message.includes('expired')||err.message.includes('invalid'));
+    if(expired){
+      // Token expired (>10 min since question loaded) — auto-advance
+      answered=true;
+      if(sab) sab.style.display='none';
+      document.getElementById('nxt').style.display='block';
+      _showSpamToast('Question timed out — click Next for a new one.');
+    } else {
+      _showSpamToast('Network error — please try again.');
     }
   }
-  document.getElementById('nxt').style.display='block';
+}
+
+function _attachExampleBtn(el,result){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;flex-direction:column;align-items:flex-start;';
+  Array.from(el.childNodes).forEach(n=>wrap.appendChild(n));
+  const inner=document.createElement('div');
+  // wrap existing content
+  const tmp=document.createDocumentFragment();
+  Array.from(wrap.childNodes).forEach(n=>tmp.appendChild(n));
+  inner.appendChild(tmp);
+  wrap.appendChild(inner);
+  const exBtn=document.createElement('button');
+  exBtn.className='example-btn';
+  exBtn.innerHTML=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="5" x2="6" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="3.5" r=".75" fill="currentColor"/></svg>Example sentence`;
+  exBtn.onclick=e=>{
+    e.stopPropagation();exBtn.remove();
+    const panel=document.createElement('div');
+    panel.className='example-panel';
+    const sentence=result.example||'No example available for this word.';
+    const highlighted=esc(sentence).replace(new RegExp('\b('+reEsc(result.word)+'\w*)','gi'),'<em>$1</em>');
+    panel.innerHTML=`<div class="ex-sentence">${highlighted}</div>`;
+    wrap.appendChild(panel);
+  };
+  wrap.appendChild(exBtn);
+  el.appendChild(wrap);
+}
+
+function _attachRevealBtn(el,chosen,isDefToWord){
+  const revWrap=document.createElement('div');
+  revWrap.style.cssText='display:flex;flex-direction:column;align-items:flex-start;';
+  const inner=document.createElement('div');
+  Array.from(el.childNodes).forEach(n=>inner.appendChild(n));
+  revWrap.appendChild(inner);
+  const revBtn=document.createElement('button');
+  revBtn.className='example-btn';
+  revBtn.style.cssText='border-color:rgba(255,92,122,0.35);background:rgba(255,92,122,0.07);color:var(--wrong);';
+  const eye=`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><ellipse cx="6" cy="6" rx="5" ry="3.5" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>`;
+  revBtn.innerHTML=isDefToWord?`${eye}Show Definition`:`${eye}Show Word`;
+  revBtn.onclick=e=>{
+    e.stopPropagation();revBtn.remove();
+    const panel=document.createElement('div');
+    panel.className='example-panel';
+    panel.style.cssText='border-color:rgba(255,92,122,0.18);background:rgba(255,92,122,0.05);';
+    if(isDefToWord){
+      const found=ALL.find(x=>x.w===chosen);
+      const def=found?found.d:'No definition found.';
+      panel.innerHTML=`<div class="ex-sentence" style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.04em;color:var(--wrong);margin-bottom:4px">${esc(chosen)}</div><div class="ex-sentence">${esc(def)}</div>`;
+    } else {
+      const found=ALL.find(x=>x.d===chosen);
+      const word=found?found.w:'Unknown';
+      panel.innerHTML=`<div class="ex-sentence" style="font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">This definition belongs to:</div><div class="ex-sentence" style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.04em;color:var(--wrong)">${esc(word)}</div>`;
+    }
+    revWrap.appendChild(panel);
+  };
+  revWrap.appendChild(revBtn);
+  el.appendChild(revWrap);
 }
 
 
 
-
-function showExample(item,btn,wrap){
-  btn.remove();
-  const panel=document.createElement('div');
-  panel.className='example-panel';
-  const sentence=item.e||'No example available for this word.';
-  // Highlight the word in the sentence
-  const highlighted=sentence.replace(
-    new RegExp(`\\b(${item.w}\\w*)`, 'gi'),
-    `<em>$1</em>`
-  );
-  panel.innerHTML=`<div class="ex-sentence">${highlighted}</div>`;
-  wrap.appendChild(panel);
-}
-
-
-
-function renderAdaptive(app){
-  const item = nextAdaptiveWord();
-  // track recent words (avoid repeats in last 5)
-  adaptiveRecentWords.push(item.w);
-  if(adaptiveRecentWords.length > 12) adaptiveRecentWords.shift();
-  queue[current] = item; // store so pick() can reference it
-  const showDef = dir==='word' ? false : dir==='def' ? true : Math.random()<0.5;
-  item._showDef = showDef;
-  // Build distractors using the shared smart scoring function.
-  const opts = smartDistractors(item, 3);
-  opts.push(item);
-  const shuffled = shuffle(opts);
-  const lname = `Lesson ${item.l} · ${LESSON_NAMES[item.l]}`;
-  const dirLabel = showDef?'Which word fits this definition?':'Select the correct definition:';
-  const prompt = showDef
-    ? `<div class="question">${dirLabel}</div><div class="question-word" style="font-size:clamp(1rem,3vw,1.25rem);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;letter-spacing:normal;color:var(--text);opacity:0.9">${item.d}</div>`
-    : `<div class="question">${dirLabel}</div><div class="question-word">${item.w}</div>`;
-  _currentCorrect = showDef ? item.w : item.d;
-  const optsHtml = shuffled.map((o,i)=>{
-    const label = showDef?o.w:o.d;
-    const safeLabel = label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const safeKey = (showDef?o.w:o.d).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<button class="opt" id="opt-${i}" onclick="pick(${i},'${safeKey}')"><span class="opt-letter">${LETTERS[i]}</span>${label}</button>`;
-  }).join('');
-  const accuracy = adaptiveCount > 0 ? Math.round(adaptiveScore/adaptiveCount*100) : 0;
-  const s = wordStats[item.w];
-  const wordPct = s && s.seen > 0 ? Math.round(s.correct/s.seen*100) : null;
-  const wordBadge = wordPct !== null
-    ? `<span class="adaptive-word-badge" style="background:${wordPct>=90?'var(--hm-great)':wordPct>=75?'var(--hm-good)':wordPct>=50?'var(--hm-mid)':'var(--hm-low)'}">${wordPct}% hist.</span>`
-    : `<span class="adaptive-word-badge" style="background:var(--hm-unseen);opacity:0.7">New</span>`;
-  app.innerHTML=`
-    <div class="stats">
-      <div class="stat"><div class="stat-label">Questions</div><div class="stat-val">${adaptiveCount+1}</div></div>
-      <div class="stat"><div class="stat-label">Streak</div><div class="stat-val">${adaptiveStreak}<span style="font-size:12px;color:var(--muted)"> best ${adaptiveBestStreak}</span></div></div>
-      <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-val">${accuracy}<span style="font-size:14px;color:var(--muted)">%</span></div></div>
-    </div>
-    <div class="quiz-layout">
-      <div class="quiz-left qcard">
-        <div class="lesson-tag" style="display:flex;align-items:center;gap:8px">${lname} ${wordBadge}</div>
-        ${prompt}
-      </div>
-      <div class="quiz-right">
-        <div class="options" id="opts">${optsHtml}</div>
-        <button class="show-ans-btn" id="show-ans-btn" onclick="showAnswer()">I don't know — show answer</button>
-        <button class="next-btn" id="nxt" style="display:none" onclick="nextQ()">Next Question →</button>
-      </div>
-    </div>
-    <div class="kbd-hint">
-      <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> to answer</span>
-      <span><kbd>Space</kbd> to advance</span>
-    </div>`;
-}
 
 function nextQ(){
   if(_spamLocked)return;
-  answered=false;
-  if(mode==='adaptive'){adaptiveCount++;render();return;}
-  current++;render();
+  if(mode==='adaptive'||mode==='quiz') loadNextQuestion();
 }
 
+
+
+
+
+
 function renderResult(app){
-  const pct=Math.round(score/queue.length*100);
+  const total=_askedWords.length||1;
+  const pct=Math.round(score/total*100);
   const msg=pct>=90?'Excellent work. You know this material.':pct>=70?'Good result. Brush up on the words below and you\'ll be ready.':pct>=50?'A decent start. Go through the words below and run the quiz again to reinforce them.':'More review needed. Work through the list below, then retake the quiz.';
   const rev=wrong.length?`<div class="review-section">
     <div class="review-header">Study these ${wrong.length} word${wrong.length>1?'s':''} before your final</div>
-    ${wrong.map(w=>`<div class="review-item"><div class="review-word">${w.w}</div><div class="review-def">${w.d}</div></div>`).join('')}
+    ${wrong.map(w=>`<div class="review-item"><div class="review-word">${esc(w.w)}</div><div class="review-def">${esc(w.d)}</div></div>`).join('')}
   </div>`:`<div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--correct);margin-top:1rem">Perfect score — nothing to review.</div>`;
   app.innerHTML=`<div class="qcard result">
-    <div class="big-score">${score}/${queue.length}</div>
+    <div class="big-score">${score}/${total}</div>
     <div class="result-pct">${pct}% correct</div>
     <div class="result-msg">${msg}</div>
     <div class="result-btns">
@@ -2468,10 +2575,27 @@ function renderResult(app){
   </div>`;
 }
 
-function retakeWrong(){queue=shuffle([...wrong]);current=0;score=0;answered=false;wrong=[];render();}
+function retakeWrong(){
+  if(!wrong.length) return;
+  _drillWords=wrong.map(w=>w.w);_prefetchPromise=null;
+  score=0;answered=false;wrong=[];_askedWords=[];
+  _currentQuestionId=null;_currentQuestionData=null;
+  loadNextQuestion();
+}
 
 function flashAssess(knew){
-  trackAnswer(knew, pool[flashIdx].w);
+  trackAnswer(knew);
+  // Submit to server so wordStats get updated in Firestore
+  if(_currentQuestionId){
+    _cfSubmitAnswer({
+      questionId: _currentQuestionId,
+      chosen: knew ? '__FLASH_CORRECT__' : '__FLASH_WRONG__',
+      flashSelfAssess: true,
+      isCorrect: knew
+    }).catch(() => {});
+    _currentQuestionId = null;
+    _currentQuestionData = null;
+  }
   flashNav(1);
 }
 
@@ -2536,6 +2660,8 @@ function renderFlash(app){
 function flipCard(){
   const card = document.querySelector('.flash-card');
   if (!card || card.classList.contains('flip-exit')) return;
+  // Fire token fetch on flip so assess buttons have a signed token ready
+  if(flashState === 0) _fireFlashToken();
   card.classList.add('flip-exit');
   setTimeout(() => {
     flashState = (flashState + 1) % 2;
@@ -2555,7 +2681,23 @@ function flipCard(){
 function flashNav(d){
   flashIdx=(flashIdx+d+pool.length)%pool.length;
   flashState=0;
+  _currentQuestionId=null;
+  _currentQuestionData=null;
   renderFlash(document.getElementById('app'));
+}
+
+function _fireFlashToken(){
+  if(!pool.length) return;
+  const item = pool[flashIdx];
+  _cfGetQuestion({
+    mode:'flash', lesson: item.l, dir, hiddenWords:[...hiddenWords],
+    askedWords:[], recentWords:[], drillWord: item.w
+  }).then(res => {
+    if(res && res.data && !res.data.done){
+      _currentQuestionId   = res.data.questionId;
+      _currentQuestionData = res.data;
+    }
+  }).catch(()=>{});
 }
 
 function toggleFlashShuffle(){
@@ -2573,14 +2715,12 @@ function toggleFlashShuffle(){
   renderFlash(document.getElementById('app'));
 }
 
-function setTheme(t){
+function setTheme(t, silent){
   document.body.classList.toggle('light', t==='light');
   localStorage.setItem('vocab_theme', t);
   document.getElementById('theme-icon').textContent = t==='light' ? '☀️' : '🌙';
-  savePreferences();
+  if(!silent) savePreferences();
 }
-
-let glossaryObserver=null;
 
 function openGlossary(){
   const overlay=document.getElementById('glossary-overlay');
@@ -2598,11 +2738,11 @@ function openGlossary(){
       const s=wordStats[w.w];
       let badge='';
       if(isHidden){
-        badge=`<span class="hidden-badge" onclick="event.stopPropagation();hiddenWords.delete('${w.w}');saveHidden();openGlossary();" title="Click to restore">🚫 Hidden from quiz</span>`;
+        badge=`<span class="hidden-badge" onclick="event.stopPropagation();restoreWord('${w.w}');" title="Click to restore">🚫 Hidden from quiz</span>`;
       } else if(s && s.seen>0){
         const pct=Math.round(s.correct/s.seen*100);
         const bg=pct>=90?'var(--hm-great)':pct>=75?'var(--hm-good)':pct>=50?'var(--hm-mid)':'var(--hm-low)';
-        badge=`<span class="glossary-acc-badge" style="background:${bg}">${pct}% · ${s.seen} seen</span>`;
+        badge=`<span class="glossary-acc-badge" style="background:${bg}">${pct}% · ${esc(s.seen)} seen</span>`;
       } else {
         badge=`<span class="glossary-acc-badge" style="background:var(--hm-unseen);opacity:0.6">Not yet seen</span>`;
       }
@@ -2616,7 +2756,7 @@ function openGlossary(){
       if(s && s.confusedWith){
         const pairs=Object.entries(s.confusedWith).sort((a,b)=>b[1]-a[1]).slice(0,2);
         if(pairs.length){
-          confused=`<div class="glossary-confused">⚡ Often confused with: ${pairs.map(([cw,n])=>`<strong>${cw}</strong> (${n}×)`).join(', ')}</div>`;
+          confused=`<div class="glossary-confused">⚡ Often confused with: ${pairs.map(([cw,n])=>`<strong>${esc(cw)}</strong> (${esc(n)}×)`).join(', ')}</div>`;
         }
       }
       // Curated confusion note (global — shown for all students)
@@ -2648,18 +2788,6 @@ function openGlossary(){
   overlay.scrollTop=0;
   document.body.style.overflow='hidden';
 
-  if(glossaryObserver) glossaryObserver.disconnect();
-  glossaryObserver=new IntersectionObserver((entries)=>{
-    let best=null,bestTop=Infinity;
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        const top=e.boundingClientRect.top;
-        if(top<bestTop){bestTop=top;best=e.target;}
-      }
-    });
-  },{root:overlay,threshold:0.15});
-
-  document.querySelectorAll('.glossary-lesson').forEach(el=>glossaryObserver.observe(el));
 }
 
 function smoothScrollOverlay(overlay, toY, duration){
@@ -2699,7 +2827,50 @@ function jumpToLesson(num){
 function closeGlossary(){
   document.getElementById('glossary-overlay').classList.remove('open');
   document.body.style.overflow='';
-  if(glossaryObserver){glossaryObserver.disconnect();glossaryObserver=null;}
+}
+
+// ─── Firebase Tracking ───────────────────────────────────────────────────────
+// Settings for the official project, "vocabulary-study-tool". They come from the Firebase console:
+//   gear icon → Project settings → General → Your apps → (the web app) → SDK setup and configuration → Config.
+// They only tell the browser which project to talk to; they are not secrets. Security comes from the rules and the functions.
+const firebaseConfig = {
+  apiKey: "AIzaSyDadRa4vIG8aKeKSCm5wq5lCRm5G_c9N3U",
+  authDomain: "vocabulary-study-tool.firebaseapp.com",
+  projectId: "vocabulary-study-tool",
+  storageBucket: "vocabulary-study-tool.firebasestorage.app",
+  messagingSenderId: "913103862395",
+  appId: "1:913103862395:web:80676232783593673cc0de"
+};
+// Stop early, with a readable message, if the settings are unfinished or come from different projects.
+(function checkFirebaseConfig(){
+  const c = firebaseConfig, problems = [];
+  if (Object.values(c).some(v => /^PASTE_/.test(String(v)))) {
+    problems.push('some values still say PASTE_');
+  } else {
+    if (c.authDomain !== c.projectId + '.firebaseapp.com')              problems.push('authDomain does not match projectId');
+    if (!String(c.storageBucket).startsWith(c.projectId + '.'))         problems.push('storageBucket does not match projectId');
+    if (String(c.appId).split(':')[1] !== String(c.messagingSenderId))  problems.push('appId does not match messagingSenderId');
+  }
+  if (!problems.length) return;
+  console.error('firebaseConfig problem: ' + problems.join('; '));
+  document.body.innerHTML = '<div style="max-width:34rem;margin:15vh auto;padding:1.25rem;border-radius:8px;background:#fff;color:#111;font:16px/1.5 system-ui,sans-serif">' +
+    '<strong>This copy of the quiz is not set up yet.</strong><br>Open <code>index.html</code>, find <code>firebaseConfig</code>, and paste in the web-app settings for the ' +
+    '<code>vocabulary-study-tool</code> Firebase project (steps are in DEPLOY.md).</div>';
+  throw new Error('firebaseConfig is not finished: ' + problems.join('; '));
+})();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+// Storage SDK is only needed on the submit screen, so it loads on demand.
+let _storageReady = null;
+function _loadStorageSdk(){
+  if(!_storageReady) _storageReady = new Promise((ok, fail) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js';
+    sc.onload = ok;
+    sc.onerror = () => { _storageReady = null; fail(new Error('Could not load upload library')); };
+    document.head.appendChild(sc);
+  });
+  return _storageReady;
 }
 
 selectLesson('adaptive');
@@ -2710,9 +2881,17 @@ if(localStorage.getItem('vocab_settings_collapsed')==='1'){
 }
 
 document.addEventListener('keydown', e => {
-
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const _t = e.target;
+  if (_t && (_t.tagName === 'INPUT' || _t.tagName === 'TEXTAREA' || _t.isContentEditable)) return;
+  if (_currentScreen !== 'quiz') return;
+  if (document.getElementById('leave-modal').classList.contains('open')) return;
   if (document.getElementById('heatmap-overlay').style.display === 'block') {
     if (e.key === 'Escape') closeHeatmap();
+    return;
+  }
+  if (document.getElementById('glossary-overlay').classList.contains('open')) {
+    if (e.key === 'Escape') closeGlossary();
     return;
   }
   const key = e.key.toUpperCase();
@@ -2789,7 +2968,7 @@ function openHeatmap() {
 
       const tip = document.createElement('div');
       tip.className = 'heatmap-cell-tooltip';
-      tip.innerHTML = `<strong>${item.w}</strong><br>${isHidden ? '🚫 Hidden from quiz' : stats.seen === 0 ? 'Not yet seen' : `${pct}% correct (${stats.correct}/${stats.seen})`}`;
+      tip.innerHTML = `<strong>${item.w}</strong><br>${isHidden ? '🚫 Hidden from quiz' : stats.seen === 0 ? 'Not yet seen' : `${pct}% correct (${esc(stats.correct)}/${esc(stats.seen)})`}`;
 
       if(isHidden){
         const hiddenIcon = document.createElement('div');
@@ -2820,244 +2999,177 @@ function closeHeatmap() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Firebase Tracking ───────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyDyiOLxaa79dDT-dmtaijYpyuPC0DFlUgc",
-  authDomain: "vocabulary-study-tool2.firebaseapp.com",
-  projectId: "vocabulary-study-tool2",
-  storageBucket: "vocabulary-study-tool2.firebasestorage.app",
-  messagingSenderId: "318389492633",
-  appId: "1:318389492633:web:a1774f285cae06e2ed1108"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-googleProvider.addScope('profile');
-googleProvider.addScope('email');
-
-function fmtHMS(s) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+// ── Cloud Function callables — all Firestore writes go through here ───────────
+async function _callCF(name, data, keepalive) {
+  const user  = auth.currentUser;
+  const token = user ? await user.getIdToken() : null;
+  const ctrl  = keepalive ? null : new AbortController();
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 20000) : null; // never leave the UI waiting forever
+  try {
+    const res = await fetch(
+      `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/${name}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ data }),
+        keepalive: !!keepalive,   // lets the final flush finish while the tab closes
+        signal: ctrl ? ctrl.signal : undefined
+      }
+    );
+    const json = await res.json();
+    if (json.error) {
+      const err = new Error(json.error.message || 'Cloud Function error');
+      err.code = json.error.status || 'internal';
+      throw err;
+    }
+    return { data: json.result };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
+
+const _cfInitUserDoc     = d => _callCF('initUserDoc', d);
+const _cfFlushUserData = (d, k) => _callCF('flushUserData', d, k);
+const _cfEndSession = d => _callCF('endSession', d, true);
+const _cfSavePreferences = d => _callCF('savePreferences', d);
+const _cfSaveHidden      = d => _callCF('saveHidden', d);
+const _cfGetQuizList     = d => _callCF('getQuizList', d);
+const _cfSubmitQuiz      = d => _callCF('submitQuiz', d);
+const _cfGetMySubmissions= d => _callCF('getMySubmissions', d);
+const _cfDeleteSubmission = d => _callCF('deleteSubmission', d);
+// ── Server-side quiz grading — correct answer never touches the browser ───────
+const _cfGetQuestion     = d => _callCF('getQuestion', d);
+const _cfSubmitAnswer    = d => _callCF('submitAnswer', d);
 
 // ── Auth state listener — handles both anon and Google users ──────────────────
 let initializedUid = null;
-let signingOut = false;
-let suppressAnon = false;
-let cachedGoogleProfile = null;
 
 auth.onAuthStateChanged(async user => {
   if (!user) {
-    if (signingOut || suppressAnon) { updateAuthUI(null); return; }
     auth.signInAnonymously().catch(err => console.warn("Anon auth error:", err));
     return;
   }
 
-  // If UID hasn't changed (e.g. linkWithPopup just upgraded the same anon account),
-  // skip re-initializing — just update fbUser reference and the UI.
+  // Validate the token is still live — if the user was deleted from Console,
+  // the cached token will fail refresh. Sign out and let the handler re-fire
+  // with null → creates a fresh anonymous session cleanly.
+  try {
+    await user.getIdToken(true);
+  } catch (e) {
+    await auth.signOut();
+    return;
+  }
+
+  // If UID hasn't changed, skip re-initializing
   if (user.uid === initializedUid) {
     fbUser = user;
-    // If this is a just-upgraded Google account, write the email now
-    if (user.email) {
-      db.collection("userData").doc(user.uid).set({ email: user.email }, { merge: true }).catch(() => {});
-      db.collection("users").doc(user.uid).set({ email: user.email }, { merge: true }).catch(() => {});
-    }
-    updateAuthUI(user);
     return;
   }
 
   initializedUid = user.uid;
   fbUser = user;
-  try {
-    await initUserDoc(user);
-  } catch (err) {
-    console.error("initUserDoc error:", err);
+
+  const startupHash = window.location.hash.replace('#', '');
+  const startingOnQuiz = startupHash.startsWith('quiz-');
+
+  if (startingOnQuiz) {
+    // ── Landing directly on a quiz — prefetch both questions before revealing UI ──
+    const prefetchMode = mode, prefetchLesson = selectedLesson;
+    const q1Promise = _cfGetQuestion({
+      mode: prefetchMode, lesson: prefetchLesson, dir,
+      hiddenWords: [], askedWords: [], recentWords: []
+    }).catch(() => null);
+
+    try {
+      await initUserDoc(user);
+    } catch (err) {
+      console.error("initUserDoc error:", err);
+    }
+
+    let q1 = await q1Promise;
+    if (!q1 || mode !== prefetchMode || selectedLesson !== prefetchLesson) {
+      q1 = await _cfGetQuestion({
+        mode, lesson: selectedLesson, dir,
+        hiddenWords: [...hiddenWords], askedWords: [], recentWords: []
+      }).catch(() => null);
+    }
+
+    if (q1?.data && !q1.data.done) {
+      const word1 = q1.data.word;
+      // Warm up submitAnswer in the background — no await, no stats touched
+      _cfSubmitAnswer({ questionId: q1.data.questionId, chosen: '__warmup__', warmup: true }).catch(() => {});
+      _prefetchPromise = _cfGetQuestion({
+        mode, lesson: selectedLesson, dir,
+        hiddenWords: [...hiddenWords],
+        askedWords:  mode === 'quiz'     ? [word1] : [],
+        recentWords: mode === 'adaptive' ? [word1] : []
+      }).catch(() => null);
+      await _prefetchPromise;
+      _readyQuestion = q1;
+    }
+  } else {
+    // ── Landing on list or submit — just init user, no question prefetch ──────
+    try {
+      await initUserDoc(user);
+    } catch (err) {
+      console.error("initUserDoc error:", err);
+    }
   }
+
+  // ── Reveal UI ─────────────────────────────────────────────────────────────
+  _initializing = false;
+  if (!sessionStartTime) sessionStartTime = Date.now(); // was never set, so sessions were never recorded
   startSecondTimer();
-  updateAuthUI(user);
+
+  if (startingOnQuiz) {
+    hideLoadingScreen();
+    showScreen('quiz');
+    if (mode !== 'flash') render();
+  } else if (startupHash === 'submit') {
+    showScreen('submit');
+  } else {
+    showScreen('list');
+    loadQuizList();
+  }
 });
 
 async function initUserDoc(user) {
-  const uid = user.uid;
-  const userRef = db.collection("userData").doc(uid);
-  const summaryRef = db.collection("users").doc(uid);
-  const statsRef = db.collection("stats").doc("global");
-  const snap = await userRef.get();
-  const statsSnap = await statsRef.get();
-
-  if (!snap.exists) {
-    // Check if this user has legacy data in the old "users" collection (schema migration case)
-    const legacySnap = await summaryRef.get();
-    const isLegacy = legacySnap.exists &&
-      (legacySnap.data().wordStats !== undefined || legacySnap.data().userNumber !== undefined);
-
-    if (isLegacy) {
-      // ── Migration: copy full data → "individual user data", trim "users" to summary ──
-      const old = legacySnap.data();
-      await userRef.set({
-        ...old,
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        sessionCount: firebase.firestore.FieldValue.increment(1)
-      });
-      // Replace "users" doc entirely with only the 5 summary fields
-      const resolvedEmail = old.email || (user.email || null);
-      await summaryRef.set({
-        ...(resolvedEmail ? { email: resolvedEmail } : {}),
-        sessionCount: (old.sessionCount || 0) + 1,
-        totalTime: old.totalTime || "00:00:00",
-        totalQuestionsAnswered: old.totalQuestionsAnswered || 0,
-        totalCorrectAnswers: old.totalCorrectAnswers || 0
-      });
-      localUserSeconds = parseHMS(old.totalTime || "00:00:00");
-      lastFlushUserSeconds = localUserSeconds;
-      wordStats = old.wordStats || {};
-      activityDays = old.activityDays || [];
-      sessionHistory = old.sessionHistory || [];
-      try {
-        applyPreferences(old.preferences || {});
-      } catch (err) {
-        console.warn("applyPreferences error:", err);
-      }
-    } else if (user.isAnonymous) {
-      // Anonymous user — persist data locally but don't count in totalUsers or create a users summary.
-      // Marked isAnonymous:true so the returning-user branch can detect and promote when they sign in.
-      await userRef.set({
-        firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        userSeconds: 0,
-        totalTime: "00:00:00",
-        totalQuestionsAnswered: 0,
-        totalCorrectAnswers: 0,
-        sessionCount: 1,
-        wordStats: {},
-        activityDays: [],
-        sessionHistory: [],
-        preferences: {},
-        isAnonymous: true
-      });
-      localUserSeconds = 0;
-      lastFlushUserSeconds = 0;
-      wordStats = {};
-    } else {
-      // Brand-new Google user — assign a number and create their doc with summary
-      await db.runTransaction(async t => {
-        const ss = await t.get(statsRef);
-        const count = ss.exists ? (ss.data().totalUsers || 0) : 0;
-        const userNumber = count + 1;
-        t.set(statsRef, {
-          totalUsers: userNumber,
-          totalSeconds: 0,
-          totalQuestionsAnswered: 0,
-          totalCorrectAnswers: 0
-        }, { merge: true });
-        const userData = {
-          userNumber,
-          firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          userSeconds: 0,
-          totalTime: "00:00:00",
-          totalQuestionsAnswered: 0,
-          totalCorrectAnswers: 0,
-          sessionCount: 1,
-          wordStats: {},
-          activityDays: [],
-          sessionHistory: [],
-          preferences: {},
-          ...(user.email ? { email: user.email } : {})
-        };
-        t.set(userRef, userData);
-        t.set(summaryRef, {
-          ...(user.email ? { email: user.email } : {}),
-          sessionCount: 1,
-          userSeconds: 0,
-          totalTime: "00:00:00",
-          totalQuestionsAnswered: 0,
-          totalCorrectAnswers: 0
-        });
-      });
-      localUserSeconds = 0;
-      lastFlushUserSeconds = 0;
-      wordStats = {};
-    }
-  } else {
-    // Returning user — doc already exists in userData
-    const wasAnon = snap.data().isAnonymous === true;
-    if (wasAnon && user.email) {
-      // Promotion: anonymous → Google (same UID via linkWithPopup succeeding).
-      // Now we count them as a real user: assign userNumber, create users summary, increment totalUsers,
-      // and strip the isAnonymous flag so this branch never re-runs for the same user.
-      await db.runTransaction(async t => {
-        const ss = await t.get(statsRef);
-        const count = ss.exists ? (ss.data().totalUsers || 0) : 0;
-        const userNumber = count + 1;
-        t.set(statsRef, { totalUsers: userNumber }, { merge: true });
-        t.set(userRef, {
-          isAnonymous: firebase.firestore.FieldValue.delete(),
-          userNumber,
-          email: user.email,
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          sessionCount: firebase.firestore.FieldValue.increment(1)
-        }, { merge: true });
-        t.set(summaryRef, {
-          email: user.email,
-          sessionCount: (snap.data().sessionCount || 0) + 1,
-          userSeconds: snap.data().userSeconds || 0,
-          totalTime: snap.data().totalTime || "00:00:00",
-          totalQuestionsAnswered: snap.data().totalQuestionsAnswered || 0,
-          totalCorrectAnswers: snap.data().totalCorrectAnswers || 0
-        });
-      });
-    } else {
-      // Regular returning Google user
-      await userRef.set({
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        sessionCount: firebase.firestore.FieldValue.increment(1),
-        ...(user.email ? { email: user.email } : {})
-      }, { merge: true });
-      await summaryRef.set({
-        sessionCount: firebase.firestore.FieldValue.increment(1),
-        ...(user.email ? { email: user.email } : {})
-      }, { merge: true });
-    }
-    localUserSeconds = snap.data().userSeconds || parseHMS(snap.data().totalTime || "00:00:00");
-    lastFlushUserSeconds = localUserSeconds;
-    wordStats = snap.data().wordStats || {};
-    activityDays = snap.data().activityDays || [];
-    sessionHistory = snap.data().sessionHistory || [];
-    // Apply synced preferences after wordStats is loaded (adaptive mode needs it)
-    try {
-      applyPreferences(snap.data().preferences || {});
-    } catch (err) {
-      console.warn("applyPreferences error:", err);
-    }
-  }
-  // Mark session start for history tracking
-  sessionStartTime = Date.now();
-  sessionQuestionsAnswered = 0;
-  sessionCorrectAnswers = 0;
+  const result = await _cfInitUserDoc({
+    email:       user.email || null,
+    isAnonymous: user.isAnonymous || false
+  });
+  const data = result.data;
+  localUserSeconds      = data.userSeconds    || 0;
+  lastFlushUserSeconds  = localUserSeconds;
+  wordStats             = data.wordStats      || {};
+  activityDays          = data.activityDays   || [];
+  sessionHistory        = data.sessionHistory || [];
+  try { applyPreferences(data.preferences || {}); } catch (err) { console.warn("applyPreferences error:", err); }
 }
 
 // ── Preference sync ───────────────────────────────────────────────────────────
+let _prefTimer = null;
 function savePreferences() {
   if (!fbUser) return;
-  db.collection("userData").doc(fbUser.uid).set({
-    preferences: {
+  clearTimeout(_prefTimer);
+  _prefTimer = setTimeout(() => { // debounced: mode/lesson/theme changes often come in bursts
+    _cfSavePreferences({
       theme: localStorage.getItem('vocab_theme') || 'dark',
       mode: mode,
       dir: dir,
       lastLesson: selectedLesson
-    }
-  }, { merge: true }).catch(() => {});
+    }).catch(() => {});
+  }, 800);
 }
 
 function applyPreferences(prefs) {
   if (!prefs || Object.keys(prefs).length === 0) return;
 
   // Theme — setTheme is safe to call; savePreferences guard handles fbUser
-  if (prefs.theme) setTheme(prefs.theme);
+  if (prefs.theme) setTheme(prefs.theme, true); // silent: don't echo loaded prefs back to the server
 
   const savedMode   = prefs.mode     || 'adaptive';
   const savedDir    = prefs.dir      || 'word';
@@ -3107,306 +3219,7 @@ function applyPreferences(prefs) {
   startSession();
 }
 
-// ── Auth UI helpers ───────────────────────────────────────────────────────────
-const GOOGLE_SVG = `<svg width="14" height="14" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-  <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-  <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
-  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-</svg>`;
-
-function isGoogleUser(user) {
-  return !!(user && user.providerData && user.providerData.some(p => p.providerId === 'google.com'));
-}
-
-function updateAuthUI(user) {
-  const signinBtn = document.getElementById('google-signin-btn');
-  const badge = document.getElementById('user-badge');
-
-  const syncBtn = document.getElementById('badge-refresh-btn');
-  const hmSyncBtn = document.getElementById('heatmap-refresh-btn');
-  if (!isGoogleUser(user)) {
-    badge.style.display = 'none';
-    if (syncBtn) syncBtn.style.display = 'none';
-    if (hmSyncBtn) hmSyncBtn.style.display = 'none';
-    document.getElementById('signin-wrap').style.display = 'flex';
-    signinBtn.style.display = '';
-    signinBtn.disabled = false;
-    signinBtn.innerHTML = GOOGLE_SVG + 'Sign in with Google';
-    document.getElementById('signin-hint').style.display = 'flex';
-  } else {
-    document.getElementById('signin-wrap').style.display = 'none';
-    signinBtn.style.display = 'none';
-    badge.style.display = 'flex';
-    if (syncBtn) syncBtn.style.display = '';
-    if (hmSyncBtn) hmSyncBtn.style.display = '';
-    const googleData = user.providerData && user.providerData.find(p => p.providerId === 'google.com');
-    const displayName = (cachedGoogleProfile && cachedGoogleProfile.name)
-      || (googleData && googleData.displayName)
-      || user.displayName;
-    const photoURL = (cachedGoogleProfile && cachedGoogleProfile.picture)
-      || (googleData && googleData.photoURL)
-      || user.photoURL;
-    const firstName = (displayName || user.email || 'Signed in').split(' ')[0];
-    document.getElementById('user-display-name').textContent = firstName;
-    const avatar = document.getElementById('user-avatar');
-    if (photoURL) {
-      avatar.src = photoURL;
-      avatar.style.display = '';
-    } else {
-      avatar.style.display = 'none';
-    }
-  }
-}
-
-// ── Google sign-in (popup) ────────────────────────────────────────────────────
-function signInWithGoogle() {
-  signingOut = false;
-  const btn = document.getElementById('google-signin-btn');
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
-  const currentUser = auth.currentUser;
-  const doSignIn = (user) => {
-    if (user && user.isAnonymous) {
-      return user.linkWithPopup(googleProvider);
-    }
-    return auth.signInWithPopup(googleProvider);
-  };
-
-  doSignIn(currentUser)
-    .then(async result => {
-      fbUser = result.user;
-      if (result.additionalUserInfo && result.additionalUserInfo.profile) {
-        cachedGoogleProfile = result.additionalUserInfo.profile;
-      }
-      // Ensure doc exists then write email (set+merge handles new and existing users)
-      if (fbUser.email) {
-        db.collection("userData").doc(fbUser.uid)
-          .set({ email: fbUser.email }, { merge: true })
-          .catch(err => console.error("email write failed:", err.code, err.message));
-        db.collection("users").doc(fbUser.uid)
-          .set({ email: fbUser.email }, { merge: true })
-          .catch(err => console.error("email summary write failed:", err.code, err.message));
-      }
-      // Create full user doc if it doesn't exist yet
-      try { await initUserDoc(fbUser); } catch(e) { console.error("initUserDoc:", e); }
-      startSecondTimer();
-      updateAuthUI(fbUser);
-    })
-    .catch(async err => {
-      if (err.code === 'auth/user-token-expired' || err.code === 'auth/invalid-user-token') {
-        // Stale anonymous session — sign out and do a fresh Google sign-in
-        try {
-          await auth.signOut();
-          const result = await auth.signInWithPopup(googleProvider);
-          fbUser = result.user;
-          updateAuthUI(fbUser);
-        } catch (innerErr) {
-          console.error("Sign-in after token expiry failed:", innerErr.code, innerErr.message);
-          updateAuthUI(auth.currentUser);
-        }
-      } else if (err.code === 'auth/credential-already-in-use' || err.code === 'auth/email-already-in-use') {
-        // Computer #2 case: Google account exists elsewhere — merge anon data in, then delete anon
-        const anonUser = auth.currentUser;
-        const localStats = { ...wordStats };
-        const localSeconds = localUserSeconds;
-        try {
-          // Must delete/sign-out the anonymous user FIRST — otherwise signInWithCredential
-          // sees a current user and attempts linking again, causing the same error.
-          // suppressAnon prevents onAuthStateChanged from creating a new anon user during the gap.
-          suppressAnon = true;
-          const anonUid = anonUser && anonUser.isAnonymous ? anonUser.uid : null;
-          // Delete the anon Firestore doc FIRST, while the anon user is still
-          // authenticated — security rules allow this. After delete() is called
-          // the anon Auth session is gone and the delete would be rejected.
-          if (anonUid) {
-            await db.collection("userData").doc(anonUid).delete().catch(() => {});
-            await db.collection("users").doc(anonUid).delete().catch(() => {});
-          }
-          if (anonUser && anonUser.isAnonymous) {
-            await anonUser.delete().catch(() => auth.signOut());
-          }
-          // Now no user is signed in — safe to sign in fresh as the Google user
-          const result = err.credential
-            ? await auth.signInWithCredential(err.credential)
-            : await auth.signInWithPopup(googleProvider);
-          suppressAnon = false;
-          fbUser = result.user;
-          initializedUid = fbUser.uid; // block onAuthStateChanged from re-running initUserDoc concurrently
-          const userRef = db.collection("userData").doc(fbUser.uid);
-
-          const snap = await userRef.get();
-          const saved = snap.exists ? snap.data() : {};
-          const savedStats = saved.wordStats || {};
-          for (const [word, stat] of Object.entries(localStats)) {
-            if (savedStats[word]) {
-              savedStats[word].seen += stat.seen;
-              savedStats[word].correct += stat.correct;
-              savedStats[word].lastSeen = Math.max(savedStats[word].lastSeen || 0, stat.lastSeen || 0);
-            } else {
-              savedStats[word] = stat;
-            }
-          }
-          wordStats = savedStats;
-          const savedSeconds = saved.userSeconds || parseHMS(saved.totalTime || "00:00:00");
-          localUserSeconds = savedSeconds + localSeconds;
-
-          // Merge activityDays
-          const savedDays = saved.activityDays || [];
-          activityDays.forEach(d => { if (!savedDays.includes(d)) savedDays.push(d); });
-
-          // Merge sessionHistory (keep last 50)
-          const savedSessions = saved.sessionHistory || [];
-          const mergedSessions = [...savedSessions, ...sessionHistory].slice(-50);
-
-          // Merge question counters
-          const savedQ = saved.totalQuestionsAnswered || 0;
-          const savedC = saved.totalCorrectAnswers || 0;
-
-          await userRef.set({
-            wordStats,
-            userSeconds: localUserSeconds,
-            totalTime: fmtHMS(localUserSeconds),
-            activityDays: savedDays,
-            sessionHistory: mergedSessions,
-            totalQuestionsAnswered: savedQ + sessionQuestionsAnswered,
-            totalCorrectAnswers: savedC + sessionCorrectAnswers,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-            ...(fbUser.email ? { email: fbUser.email } : {})
-          }, { merge: true });
-          await db.collection("users").doc(fbUser.uid).set({
-            ...(fbUser.email ? { email: fbUser.email } : {}),
-            sessionCount: firebase.firestore.FieldValue.increment(1),
-            // Use increment for the anon-session seconds so two simultaneous sign-ins
-            // add their time rather than one overwriting the other.
-            userSeconds: firebase.firestore.FieldValue.increment(localSeconds),
-            totalTime: fmtHMS(localUserSeconds),
-            totalQuestionsAnswered: firebase.firestore.FieldValue.increment(sessionQuestionsAnswered),
-            totalCorrectAnswers: firebase.firestore.FieldValue.increment(sessionCorrectAnswers)
-          }, { merge: true });
-          // Sync globals to the merged values — flushTime() and endSession() write
-          // from these, so they must reflect the full merged state, not just anon data.
-          activityDays = savedDays;
-          sessionHistory = mergedSessions;
-          startSecondTimer();
-          updateAuthUI(fbUser);
-        } catch (innerErr) {
-          suppressAnon = false; // ensure anon sign-in is never permanently blocked
-          console.warn("Merge error:", innerErr);
-          updateAuthUI(auth.currentUser);
-        }
-      } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-        console.error("Google sign-in error:", err.code, err.message);
-        const btn = document.getElementById('google-signin-btn');
-        btn.disabled = false;
-        document.getElementById('signin-hint').style.display = 'none';
-        if (err.code === 'auth/unauthorized-domain') {
-          btn.innerHTML = GOOGLE_SVG + 'Domain not authorized — see console';
-          console.error(
-            '%c Firebase Auth: Unauthorized Domain ',
-            'background:#c00;color:#fff;font-weight:bold;padding:2px 6px;border-radius:3px',
-            '\n\nYour site\'s domain is not in Firebase\'s authorized list.\n' +
-            'Fix: Firebase Console → Authentication → Settings → Authorized domains → Add your domain\n' +
-            '(e.g. yourusername.github.io)'
-          );
-        } else {
-          btn.innerHTML = GOOGLE_SVG + `Error: ${err.code}`;
-        }
-        setTimeout(() => updateAuthUI(auth.currentUser), 4000);
-      } else {
-        // User closed the popup — just reset the button
-        updateAuthUI(auth.currentUser);
-      }
-    });
-}
-
-async function signOutGoogle() {
-  signingOut = true;
-  stopTimers();
-  flushTime();
-  endSession();
-
-  // Reset all local state before the new anon session starts
-  fbUser = null;
-  initializedUid = null;
-  wordStats = {};
-  activityDays = [];
-  sessionHistory = [];
-  sessionStartTime = null;
-  sessionQuestionsAnswered = 0;
-  sessionCorrectAnswers = 0;
-  pendingAnswers = 0;
-  pendingCorrect = 0;
-  flushCount = 0;
-  cachedGoogleProfile = null;
-  updateAuthUI(null);
-
-  try {
-    await auth.signOut();
-  } catch (err) {
-    console.warn("Sign-out error:", err);
-  }
-
-  // Sign-out is complete — safe to create a fresh anonymous session.
-  // onAuthStateChanged will fire with the new anon user → initUserDoc → new Firestore doc.
-  signingOut = false;
-  auth.signInAnonymously().catch(err => console.warn("Post-logout anon auth error:", err));
-}
-
-// Parses "HH:MM:SS" back to total seconds for local tracking.
-function parseHMS(str) {
-  if (!str || typeof str !== "string") return 0;
-  const [h,m,s] = str.split(":").map(Number);
-  return (h||0)*3600 + (m||0)*60 + (s||0);
-}
-
-// Pulls latest data from Firestore and refreshes UI — called every 60s for multi-device sync.
-async function syncFromFirestore() {
-  if (!fbUser) return;
-  try {
-    const snap = await db.collection("userData").doc(fbUser.uid).get();
-    if (!snap.exists) return;
-    const data = snap.data();
-    // Merge remote wordStats — take the higher seen/correct count per word
-    const remote = data.wordStats || {};
-    for (const [word, stat] of Object.entries(remote)) {
-      if (!wordStats[word] || stat.seen > wordStats[word].seen) {
-        wordStats[word] = stat;
-      }
-    }
-    // Sync hidden words (union of local + remote)
-    const remoteHidden = data.hiddenWords || [];
-    remoteHidden.forEach(w => hiddenWords.add(w));
-    if(remoteHidden.length) localStorage.setItem('vocab_hidden', JSON.stringify([...hiddenWords]));
-    // Sync activity days (union of local + remote)
-    const remoteDays = data.activityDays || [];
-    remoteDays.forEach(d => { if (!activityDays.includes(d)) activityDays.push(d); });
-    // Sync time — take whichever is higher (userSeconds is source of truth; totalTime is display-only)
-    const remoteSeconds = data.userSeconds || parseHMS(data.totalTime || "00:00:00");
-    if (remoteSeconds > localUserSeconds) localUserSeconds = remoteSeconds;
-    // Refresh heatmap if it's open
-    const heatmapOpen = document.getElementById('heatmap-overlay').style.display === 'block';
-    if (heatmapOpen) openHeatmap();
-  } catch (err) {
-    console.warn("Sync error:", err);
-  }
-}
-
-// Manual sync triggered by refresh buttons — shows brief spinning state.
-async function manualSync(btn) {
-  if (!fbUser) return;
-  if (btn) btn.classList.add('spinning');
-  await syncFromFirestore();
-  if (btn) {
-    setTimeout(() => btn.classList.remove('spinning'), 700);
-  }
-}
-
 // Ticks every second locally. Flushes to Firestore every 60s and on tab hide/close.
-// flushTimer and syncTimer are merged into one interval to halve the number of
-// concurrent Firestore round-trips. syncGlobalStats (a read+write) runs only every
-// 5th flush (~5 min) instead of every minute.
 function startSecondTimer() {
   stopTimers();
   secondTimer = setInterval(() => {
@@ -3424,16 +3237,8 @@ function startSecondTimer() {
       localUserSeconds++;
     }
   }, 1000);
-  // Single interval handles flushing, syncing from Firestore, and periodic global stat sync.
-  // syncFromFirestore piggybacks here — no separate syncTimer needed.
-  // syncGlobalStats does a read+write just to format a number, so it runs every 5 min (every
-  // 5th flush) rather than every minute. totalSeconds accuracy is unaffected.
-  flushTimer = setInterval(async () => {
-    await flushTime();
-    syncFromFirestore();
-    flushCount++;
-    if (flushCount % 5 === 0) syncGlobalStats();
-  }, 60000);
+  // One interval sends the buffered time and answer counts to the server once a minute.
+  flushTimer = setInterval(() => { flushTime(); }, 60000);
 }
 
 function stopTimers() {
@@ -3444,110 +3249,45 @@ function stopTimers() {
   flushTimer = null;
 }
 
-function flushTime() {
+function flushTime(final) {
   if (!fbUser) return Promise.resolve();
   const elapsed = localUserSeconds - lastFlushUserSeconds;
   lastFlushUserSeconds = localUserSeconds;
-  const userRef = db.collection("userData").doc(fbUser.uid);
-  const summaryRef = db.collection("users").doc(fbUser.uid);
-  const FV = firebase.firestore.FieldValue;
 
-  // Drain the answer buffer accumulated by trackAnswer() since the last flush.
-  // This replaces the per-answer Firestore writes that previously fired on every question.
   const answersToFlush = pendingAnswers;
   const correctToFlush = pendingCorrect;
   pendingAnswers = 0;
   pendingCorrect = 0;
 
-  const wordUpdates = {};
-  for (const [word, stat] of Object.entries(wordStats)) {
-    wordUpdates[`wordStats.${word}`] = stat;
-  }
-  if (activityDays.length) {
-    wordUpdates.activityDays = FV.arrayUnion(...activityDays);
-  }
-  // Include buffered answer counts in the batch write (if any)
-  if (answersToFlush > 0) {
-    wordUpdates.totalQuestionsAnswered = FV.increment(answersToFlush);
-    if (correctToFlush > 0) wordUpdates.totalCorrectAnswers = FV.increment(correctToFlush);
+  // Nothing new (idle/AFK, or hide+unload firing together) — skip the Cloud Function call.
+  if (elapsed <= 0 && answersToFlush === 0) {
+    return Promise.resolve();
   }
 
-  if (elapsed > 0) {
-    const fmt = fmtHMS(localUserSeconds);
-    // Atomically increment global totalSeconds. totalTime is NOT written here —
-    // syncGlobalStats reads it back after the write and derives totalTime from it,
-    // so totalTime is always purely based on the server-stored totalSeconds.
-    db.collection("stats").doc("global")
-      .set({ totalSeconds: FV.increment(elapsed) }, { merge: true })
-      .catch(err => console.warn("global totalSeconds write failed:", err));
-    // Batch the global question counters with the totalSeconds write to avoid a second
-    // round-trip. Only write them here if there are pending counts to flush.
-    if (answersToFlush > 0) {
-      db.collection("stats").doc("global").set({
-        totalQuestionsAnswered: FV.increment(answersToFlush),
-        ...(correctToFlush > 0 ? { totalCorrectAnswers: FV.increment(correctToFlush) } : {})
-      }, { merge: true }).catch(err => console.warn("global answer count write failed:", err));
+  // wordStats is not sent: the server already records every answer in submitAnswer, and a large
+  // payload would not fit in the 64 KB limit for the request that fires while the tab is closing.
+  return _cfFlushUserData({
+    activityDays,
+    answersToFlush,
+    correctToFlush
+  }, final).then(res => {
+    // Sync authoritative userSeconds back from server
+    if (res && res.data && typeof res.data.userSeconds === 'number') {
+      localUserSeconds     = res.data.userSeconds;
+      lastFlushUserSeconds = localUserSeconds;
     }
-    return Promise.all([
-      userRef.update({ userSeconds: FV.increment(elapsed), totalTime: fmt, ...wordUpdates }),
-      summaryRef.set({
-        userSeconds: localUserSeconds, totalTime: fmt,
-        ...(answersToFlush > 0 ? { totalQuestionsAnswered: FV.increment(answersToFlush) } : {}),
-        ...(correctToFlush > 0 ? { totalCorrectAnswers: FV.increment(correctToFlush) } : {})
-      }, { merge: true })
-    ]);
-  } else if (Object.keys(wordUpdates).length) {
-    // No new time elapsed, but wordStats or answer counts changed — write those only.
-    if (answersToFlush > 0) {
-      db.collection("stats").doc("global").set({
-        totalQuestionsAnswered: FV.increment(answersToFlush),
-        ...(correctToFlush > 0 ? { totalCorrectAnswers: FV.increment(correctToFlush) } : {})
-      }, { merge: true }).catch(err => console.warn("global answer count write failed:", err));
-      summaryRef.set({
-        totalQuestionsAnswered: FV.increment(answersToFlush),
-        ...(correctToFlush > 0 ? { totalCorrectAnswers: FV.increment(correctToFlush) } : {})
-      }, { merge: true }).catch(() => {});
-    }
-    return userRef.update(wordUpdates);
-  }
-  return Promise.resolve();
+  }).catch(err => console.warn("flushUserData CF error:", err));
 }
 
-// Reads stats/global/totalSeconds — kept accurate by atomic increments in flushTime —
-// and writes totalTime purely as fmtHMS(totalSeconds). No userData collection scan.
-// Requires stats/global to be readable in Firestore rules:
-//   match /stats/{doc} { allow read: if true; allow write: if request.auth != null; }
-async function syncGlobalStats() {
-  try {
-    const snap = await db.collection("stats").doc("global").get();
-    const total = snap.exists ? (snap.data().totalSeconds || 0) : 0;
-    await db.collection("stats").doc("global").set({
-      totalTime: fmtHMS(total)
-    }, { merge: true });
-  } catch (err) {
-    console.warn("syncGlobalStats error:", err);
-  }
-}
-
-function trackAnswer(isRight, word) {
+function trackAnswer(isRight) {
   if (!fbUser) return;
-  // Update local per-word stats
-  if (word) {
-    if (!wordStats[word]) wordStats[word] = { seen: 0, correct: 0 };
-    wordStats[word].seen++;
-    if (isRight) wordStats[word].correct++;
-    wordStats[word].lastSeen = Date.now(); // timestamp for spaced repetition
-  }
   // Daily activity log — used for streak calculation
-  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const today = new Date().toISOString().slice(0, 10);
   if (!activityDays.includes(today)) activityDays.push(today);
   // Per-session counters
   sessionQuestionsAnswered++;
   if (isRight) sessionCorrectAnswers++;
-
-  // Buffer the answer — flushTime() drains these every 60s (and on tab hide/close),
-  // collapsing what were previously 3 immediate Firestore writes per answer into a
-  // single batched write. wordStats is already flushed by flushTime() separately.
+  // Buffer for the next flush — word stats are written server-side by submitAnswer
   pendingAnswers++;
   if (isRight) pendingCorrect++;
 }
@@ -3563,11 +3303,7 @@ function endSession() {
     duration: duration
   };
   sessionHistory = [...sessionHistory, record].slice(-50); // keep local copy trimmed
-  // arrayUnion appends the record atomically — two devices writing at the same time
-  // each add their own record instead of one overwriting the other.
-  db.collection("userData").doc(fbUser.uid).update({
-    sessionHistory: firebase.firestore.FieldValue.arrayUnion(record)
-  }).catch(() => {});
+  _cfEndSession({ record }).catch(() => {});
   // Reset so duplicate calls don't double-record
   sessionStartTime = Date.now();
   sessionQuestionsAnswered = 0;
@@ -3586,7 +3322,7 @@ function onUserActivity() {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     stopTimers();
-    flushTime();
+    flushTime(true);
     endSession();
   } else {
     // Returning to the tab counts as activity — don't penalise time spent in another tab.
@@ -3596,265 +3332,408 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("beforeunload", () => {
   stopTimers();
-  flushTime();
+  flushTime(true);
   endSession();
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Save / Load Code ────────────────────────────────────────────────────────
-const SAVE_CODE_VERSION = 2;
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Hash routing ─────────────────────────────────────────────────────────────
 
-function openSaveCode() {
-  document.getElementById('savecode-overlay').classList.add('open');
-  document.getElementById('savecode-copy-status').className = 'savecode-status';
-  document.getElementById('savecode-import-status').className = 'savecode-status';
+let _currentScreen = ''; // 'list' | 'quiz' | 'submit'
+let _pendingLeaveHash   = null;  // where we're trying to go when the warning shows
+
+function navigate(hash) {
+  window.location.hash = hash ? '#' + hash : '#';
 }
 
-function closeSaveCode() {
-  document.getElementById('savecode-overlay').classList.remove('open');
+function showScreen(name) {
+  document.getElementById('screen-list').classList.toggle('active', name === 'list');
+  document.getElementById('screen-submit').classList.toggle('active', name === 'submit');
+  document.querySelector('.wrap').style.display = name === 'quiz' ? '' : 'none';
+  _currentScreen = name;
+  if (name === 'submit') {
+    initUploadZoneIfNeeded();
+    resetSubmitForm();
+  }
 }
 
-function generateSaveCode() {
-  const payload = {
-    v: SAVE_CODE_VERSION,
-    // ── Persistent data ──────────────────────────────────────────────────────
-    ws: wordStats,
-    ad: activityDays,
-    hw: [...hiddenWords],
-    us: localUserSeconds,
-    sh: sessionHistory,
-    // ── Full UI + session snapshot ────────────────────────────────────────────
-    ss: {
-      // Appearance & layout
-      theme:             localStorage.getItem('vocab_theme') || 'dark',
-      settingsCollapsed: localStorage.getItem('vocab_settings_collapsed') === '1',
-      // Mode / direction / order / lesson
-      mode:              mode,
-      dir:               dir,
-      order:             quizOrder,
-      lesson:            selectedLesson,
-      // Quiz session — queue as word strings so it's compact
-      queue:             queue.map(item => item.w),
-      current:           current,
-      score:             score,
-      wrong:             wrong.map(item => item.w),
-      // Flash state
-      flashIdx:          flashIdx,
-      flashShuffled:     flashShuffled,
-      // Adaptive state
-      adaptiveCount:       adaptiveCount,
-      adaptiveScore:       adaptiveScore,
-      adaptiveStreak:      adaptiveStreak,
-      adaptiveBestStreak:  adaptiveBestStreak,
-      adaptiveRecentWords: adaptiveRecentWords,
-      adaptiveNextReview:  adaptiveNextReview
+function handleRoute() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash.startsWith('quiz-')) {
+    const wasAlreadyOnQuiz = _currentScreen === 'quiz';
+    showScreen('quiz');
+    if (!wasAlreadyOnQuiz && !_initializing) {
+      loadQuizAndStart();
     }
-  };
-  return LZString.compressToBase64(JSON.stringify(payload));
+  } else if (hash === 'submit') {
+    showScreen('submit');
+  } else {
+    showScreen('list');
+    loadQuizList();
+  }
 }
 
-function applySaveCode(code) {
-  const json = LZString.decompressFromBase64(code.trim());
-  if (!json) throw new Error('Decompression failed.');
-  const data = JSON.parse(json);
-  if (!data || (data.v !== 1 && data.v !== SAVE_CODE_VERSION)) throw new Error('Unrecognized version.');
+// Shows a loading screen, prefetches both questions, then starts the quiz.
+// Called when navigating to a quiz from the list screen.
+async function loadQuizAndStart() {
+  // Show the full-screen loading overlay
+  const existingLoader = document.getElementById('loading-screen');
+  let loader = existingLoader;
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'loading-screen';
+    loader.innerHTML = '<div class="ld-spinner"></div><div class="ld-label">Preparing quiz…</div>';
+    document.body.appendChild(loader);
+  } else {
+    loader.classList.remove('fade-out');
+    loader.style.display = 'flex';
+  }
 
-  // ── Core persistent data ──────────────────────────────────────────────────
-  wordStats        = data.ws || {};
-  activityDays     = data.ad || [];
-  hiddenWords      = new Set(data.hw || []);
-  localUserSeconds = data.us || 0;
-  sessionHistory   = data.sh || [];
-  localStorage.setItem('vocab_hidden', JSON.stringify([...hiddenWords]));
+  try {
+    // Fetch first question
+    const q1 = await _cfGetQuestion({
+      mode, lesson: selectedLesson, dir,
+      hiddenWords: [...hiddenWords], askedWords: [], recentWords: []
+    }).catch(() => null);
 
-  // ── v1 legacy: preferences only, no session state ─────────────────────────
-  if (data.v === 1) {
-    if (data.pr) { try { applyPreferences(data.pr); } catch(e) {} }
+    if (q1?.data && !q1.data.done) {
+      const word1 = q1.data.word;
+      // Warm up submitAnswer in the background — no await, no stats touched
+      _cfSubmitAnswer({ questionId: q1.data.questionId, chosen: '__warmup__', warmup: true }).catch(() => {});
+      _prefetchPromise = _cfGetQuestion({
+        mode, lesson: selectedLesson, dir,
+        hiddenWords: [...hiddenWords],
+        askedWords:  mode === 'quiz'     ? [word1] : [],
+        recentWords: mode === 'adaptive' ? [word1] : []
+      }).catch(() => null);
+      await _prefetchPromise;
+      _readyQuestion = q1;
+    }
+  } catch (err) {
+    console.error("Quiz load error:", err);
+  }
+
+  // Hide loading screen and start
+  loader.classList.add('fade-out');
+  setTimeout(() => {
+    if (loader.parentNode) loader.style.display = 'none';
+  }, 400);
+
+  // startSession clears _prefetchPromise — save and restore so q2 isn't lost
+  const savedPrefetch = _prefetchPromise;
+  startSession();
+  _prefetchPromise = savedPrefetch;
+}
+
+window.addEventListener('hashchange', () => {
+  // Intercept navigation away from an active quiz
+  const hash = window.location.hash.replace('#', '');
+  if (_currentScreen === 'quiz' && adaptiveCount + score > 0 && !hash.startsWith('quiz-')) {
+    // User tried to navigate away mid-quiz — restore hash and show warning
+    _pendingLeaveHash = hash;
+    window.location.hash = 'quiz-' + (window.location.hash.includes('quiz-') ? window.location.hash.replace('#quiz-','') : 'vocab-150');
+    openLeaveModal();
+    return;
+  }
+  handleRoute();
+});
+
+function openLeaveModal() {
+  document.getElementById('leave-modal').classList.add('open');
+}
+function closeLeaveModal() {
+  document.getElementById('leave-modal').classList.remove('open');
+  _pendingLeaveHash = null;
+}
+function confirmLeave() {
+  document.getElementById('leave-modal').classList.remove('open');
+  const dest = _pendingLeaveHash || '';
+  _pendingLeaveHash = null;
+  // Use replaceState instead of navigate() so hashchange never fires — no re-intercept possible
+  history.replaceState(null, '', dest ? '#' + dest : '#');
+  handleRoute();
+}
+
+// ── Quiz list screen ──────────────────────────────────────────────────────────
+
+async function loadQuizList() {
+  const container = document.getElementById('quiz-cards');
+  try {
+    const res    = await _cfGetQuizList({});
+    const quizzes = res.data.quizzes || [];
+    if (quizzes.length === 0) {
+      container.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding:2rem 0">No quizzes yet</div>`;
+      return;
+    }
+    container.innerHTML = quizzes.map(q => `
+      <div class="quiz-card" data-id="${esc(q.id)}" onclick="navigate('quiz-'+this.dataset.id)">
+        <div class="quiz-card-info">
+          <div class="quiz-card-title">${esc(q.title)}</div>
+          <div class="quiz-card-meta">${esc(q.wordCount)} words${q.submittedBy ? ` · Submitted by ${esc(q.submittedBy)}` : ''}</div>
+        </div>
+        <div class="quiz-card-arrow">›</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--wrong);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase">Could not load quizzes — check your connection.</div>`;
+  }
+  // Load user's submissions
+  loadMySubmissions();
+}
+
+async function loadMySubmissions() {
+  if (!auth.currentUser) return;
+  try {
+    const res = await _cfGetMySubmissions({});
+    const submissions = res.data.submissions || [];
+    if (submissions.length === 0) return;
+    const section = document.getElementById('my-submissions-section');
+    const list    = document.getElementById('my-submissions-list');
+    section.style.display = '';
+    list.innerHTML = submissions.map(s => {
+      const date = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : '';
+      const notesPreview = s.notes ? s.notes.slice(0, 60) + (s.notes.length > 60 ? '…' : '') : '(no notes)';
+      const deleteBtn = s.status === 'pending'
+        ? `<button class="submission-delete-btn" data-id="${esc(s.id)}" onclick="deleteSubmission(this.dataset.id, this)">Delete</button>`
+        : '';
+      return `
+        <div class="submission-card" id="submission-${esc(s.id)}">
+          <div class="submission-info">
+            <div class="submission-notes">${esc(notesPreview)}</div>
+            <div>${esc(s.imageCount)} image${s.imageCount !== 1 ? 's' : ''} · ${date}</div>
+          </div>
+          ${deleteBtn}
+          <span class="status-badge ${esc(s.status)}">${esc(s.status)}</span>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.warn("Could not load submissions:", err);
+  }
+}
+
+async function deleteSubmission(id, btn) {
+  if (!confirm('Delete this submission? This cannot be undone.')) return;
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    await _cfDeleteSubmission({ submissionId: id });
+    const card = document.getElementById('submission-' + id);
+    if (card) card.remove();
+    // Hide section if no cards remain
+    const list = document.getElementById('my-submissions-list');
+    if (list && !list.querySelector('.submission-card')) {
+      document.getElementById('my-submissions-section').style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Delete failed:', err);
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+  }
+}
+
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE    = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_TOTAL_MB     = 17;      // the server emails every image, and an email can only be so big
+const MAX_TOTAL_SIZE   = MAX_TOTAL_MB * 1024 * 1024;
+const MAX_IMAGES       = 10;
+// The only image types the server and the Storage rules accept (keep in step with functions/index.js and storage.rules).
+const IMAGE_MIME = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', webp:'image/webp', gif:'image/gif', heic:'image/heic', heif:'image/heif' };
+const MIME_EXT   = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'image/gif':'gif', 'image/heic':'heic', 'image/heif':'heif' };
+const _has = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+// Extension to upload a file under: from its name when that is an allowed one, otherwise from the browser's idea
+// of its type (some HEIC photos arrive with no type, some camera files with no extension). '' = not an allowed image.
+function _imageExt(file) {
+  const m = /\.([A-Za-z0-9]+)$/.exec(file.name || '');
+  const fromName = m ? m[1].toLowerCase() : '';
+  if (_has(IMAGE_MIME, fromName)) return fromName;
+  const type = (file.type || '').toLowerCase();
+  return _has(MIME_EXT, type) ? MIME_EXT[type] : '';
+}
+let _selectedFiles     = [];
+let _uploadZoneInited = false;
+let _previewUrls = [];
+
+function initUploadZoneIfNeeded() {
+  if (_uploadZoneInited) return;
+  _uploadZoneInited = true;
+  const zone  = document.getElementById('upload-zone');
+  const input = document.getElementById('image-input');
+  if (!zone || !input) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    addFiles(Array.from(e.dataTransfer.files));
+  });
+  input.addEventListener('change', () => {
+    addFiles(Array.from(input.files));
+    input.value = '';
+  });
+}
+
+function resetSubmitForm() {
+  _selectedFiles = [];
+  renderPreviews();
+  const notes = document.getElementById('submission-notes');
+  const name  = document.getElementById('submission-name');
+  const cb    = document.getElementById('tag-name-checkbox');
+  const wrap  = document.getElementById('name-field-wrap');
+  const status= document.getElementById('submit-status');
+  const btn   = document.getElementById('submit-btn');
+  if (notes)   notes.value   = '';
+  if (name)    name.value    = '';
+  if (cb)      cb.checked    = false;
+  if (wrap)    wrap.style.display = 'none';
+  if (status)  status.textContent = '';
+  if (btn)     btn.disabled  = false;
+}
+
+function addFiles(files) {
+  const statusEl = document.getElementById('submit-status');
+  const skipped  = { type: 0, size: 0, total: 0, count: 0 };
+  let total = _selectedFiles.reduce((n, f) => n + f.size, 0);
+  const picked = [];
+  for (const f of files) {
+    if (!_imageExt(f))                                       { skipped.type++;  continue; }
+    if (f.size > MAX_FILE_SIZE)                              { skipped.size++;  continue; }
+    if (_selectedFiles.length + picked.length >= MAX_IMAGES) { skipped.count++; continue; }
+    if (total + f.size > MAX_TOTAL_SIZE)                     { skipped.total++; continue; }
+    total += f.size;
+    picked.push(f);
+  }
+  _selectedFiles = [..._selectedFiles, ...picked];
+  const notes = [];
+  if (skipped.type)  notes.push(`${skipped.type} file(s) skipped: only JPG, PNG, WebP, GIF and HEIC images work.`);
+  if (skipped.size)  notes.push(`${skipped.size} file(s) skipped: over ${MAX_FILE_SIZE_MB}MB each.`);
+  if (skipped.total) notes.push(`${skipped.total} file(s) skipped: ${MAX_TOTAL_MB}MB total limit.`);
+  if (skipped.count) notes.push(`${skipped.count} file(s) skipped: up to ${MAX_IMAGES} images.`);
+  if (statusEl) {
+    statusEl.style.color = notes.length ? 'var(--wrong)' : 'var(--muted)';
+    statusEl.textContent = notes.join(' ');
+  }
+  renderPreviews();
+}
+
+function removeFile(idx) {
+  _selectedFiles.splice(idx, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const container = document.getElementById('upload-previews');
+  const label     = document.getElementById('upload-zone-label');
+  if (!container || !label) return;
+  label.textContent = _selectedFiles.length === 0
+    ? `Click or drag images here (max ${MAX_FILE_SIZE_MB}MB each, ${MAX_TOTAL_MB}MB total)`
+    : `${_selectedFiles.length}/${MAX_IMAGES} image${_selectedFiles.length !== 1 ? 's' : ''} selected`;
+  _previewUrls.forEach(u => URL.revokeObjectURL(u)); _previewUrls = [];
+  container.innerHTML = '';
+  _selectedFiles.forEach((file, i) => {
+    const url  = URL.createObjectURL(file);
+    _previewUrls.push(url);
+    const wrap = document.createElement('div');
+    wrap.className = 'upload-thumb-wrap';
+    wrap.innerHTML = `
+      <img class="upload-thumb" src="${url}">
+      <button class="upload-thumb-remove" onclick="removeFile(${i})">×</button>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function toggleNameField(){
+  const checked = document.getElementById('tag-name-checkbox').checked;
+  document.getElementById('name-field-wrap').style.display = checked ? '' : 'none';
+  if(!checked) document.getElementById('submission-name').value = '';
+}
+
+async function submitQuizForm() {
+  const notes     = document.getElementById('submission-notes').value.trim();
+  const tagName   = document.getElementById('tag-name-checkbox').checked;
+  const typedName = document.getElementById('submission-name')?.value.trim() || '';
+  const btn       = document.getElementById('submit-btn');
+  const statusEl  = document.getElementById('submit-status');
+
+  // If tagging name, require the name field
+  if (tagName && !typedName) {
+    statusEl.style.color = 'var(--wrong)';
+    statusEl.textContent = 'Please enter your name or uncheck the tag option.';
+    document.getElementById('submission-name').focus();
     return;
   }
 
-  // ── v2: full snapshot restore ─────────────────────────────────────────────
-  const ss = data.ss || {};
+  const displayName = tagName ? typedName : null;
 
-  // Theme
-  setTheme(ss.theme || 'dark');
-
-  // Settings panel collapse state
-  const panel = document.getElementById('settings-panel');
-  if (ss.settingsCollapsed) {
-    panel.classList.add('collapsed');
-    localStorage.setItem('vocab_settings_collapsed', '1');
-  } else {
-    panel.classList.remove('collapsed');
-    localStorage.setItem('vocab_settings_collapsed', '0');
+  if (_selectedFiles.length === 0 && !notes) {
+    statusEl.style.color = 'var(--wrong)';
+    statusEl.textContent = 'Please add at least one image or some notes.';
+    return;
   }
 
-  // Direction buttons
-  dir = ss.dir || 'word';
-  ['word','def','random'].forEach(k => {
-    const el = document.getElementById('dir-' + k);
-    if (el) el.className = 'dir-btn' + (dir === k ? ' active' : '');
-  });
+  btn.disabled = true;
+  statusEl.style.color = 'var(--muted)';
 
-  // Order buttons
-  quizOrder = ss.order || 'random';
-  const ordEl = document.getElementById('order-ordered');
-  const rndEl = document.getElementById('order-random');
-  if (ordEl) ordEl.className = 'dir-btn' + (quizOrder === 'ordered' ? ' active' : '');
-  if (rndEl) rndEl.className = 'dir-btn' + (quizOrder === 'random'  ? ' active' : '');
-
-  // Mode and lesson
-  mode           = ss.mode   || 'adaptive';
-  selectedLesson = ss.lesson !== undefined ? ss.lesson : 'all';
-
-  // Mode buttons + row visibility
-  const mq = document.getElementById('mode-quiz');
-  const mf = document.getElementById('mode-flash');
-  const dirRow    = document.getElementById('dir-row');
-  const orderRow  = document.getElementById('order-row');
-  const lessonRow = document.getElementById('lesson-row');
-  if (mode === 'flash') {
-    if (mq) mq.className = 'mode-btn';
-    if (mf) mf.className = 'mode-btn active';
-    if (dirRow)    dirRow.style.display    = 'none';
-    if (orderRow)  orderRow.style.display  = 'none';
-    if (lessonRow) lessonRow.style.display = 'none';
-  } else {
-    if (mq) mq.className = 'mode-btn active';
-    if (mf) mf.className = 'mode-btn';
-    if (dirRow)    dirRow.style.display    = (mode === 'quiz' || mode === 'adaptive') ? 'flex' : 'none';
-    if (orderRow)  orderRow.style.display  = mode === 'quiz' ? 'flex' : 'none';
-    if (lessonRow) lessonRow.style.display = 'flex';
-  }
-  buildLessonRow();
-
-  // Rebuild pool from restored lesson/mode
-  orderedPool  = getPool();
-  flashShuffled = ss.flashShuffled || false;
-  pool = flashShuffled ? shuffle([...orderedPool]) : [...orderedPool];
-
-  // Adaptive state
-  adaptiveCount       = ss.adaptiveCount       || 0;
-  adaptiveScore       = ss.adaptiveScore       || 0;
-  adaptiveStreak      = ss.adaptiveStreak      || 0;
-  adaptiveBestStreak  = ss.adaptiveBestStreak  || 0;
-  adaptiveRecentWords = ss.adaptiveRecentWords || [];
-  adaptiveNextReview  = ss.adaptiveNextReview  || Math.floor(Math.random()*3)+4;
-
-  // Quiz session state — restore queue from saved word strings
-  if (ss.queue && ss.queue.length > 0) {
-    queue   = ss.queue.map(w => ALL.find(item => item.w === w)).filter(Boolean);
-    current = Math.min(ss.current || 0, Math.max(0, queue.length - 1));
-    score   = ss.score || 0;
-    wrong   = (ss.wrong || []).map(w => ALL.find(item => item.w === w)).filter(Boolean);
-  } else {
-    queue   = quizOrder === 'ordered' ? [...orderedPool] : shuffle([...orderedPool]);
-    current = 0; score = 0; wrong = [];
-  }
-  answered  = false; // always land on question unanswered — clean state
-
-  // Flash position
-  flashIdx   = Math.min(ss.flashIdx || 0, Math.max(0, pool.length - 1));
-  flashState = 0; // always show front of card on load
-
-  render();
-  pushImportToFirestore();
-}
-
-// Immediately writes all imported data to Firestore so the new device is in
-// sync right away, rather than waiting for the next 60-second flush cycle.
-async function pushImportToFirestore() {
-  if (!fbUser) return;
   try {
-    const FV = firebase.firestore.FieldValue;
-    const userRef    = db.collection("userData").doc(fbUser.uid);
-    const summaryRef = db.collection("users").doc(fbUser.uid);
-    const fmt = fmtHMS(localUserSeconds);
-
-    // Build per-word stat map
-    const wordUpdates = {};
-    for (const [word, stat] of Object.entries(wordStats)) {
-      wordUpdates[`wordStats.${word}`] = stat;
+    statusEl.textContent = 'Preparing upload…';
+    await _loadStorageSdk();
+    // Upload images one at a time with progress counter
+    const uid       = fbUser.uid;
+    const timestamp = Date.now();
+    const imagePaths = [];
+    for (let i = 0; i < _selectedFiles.length; i++) {
+      statusEl.textContent = `Uploading image ${i + 1} of ${_selectedFiles.length}…`;
+      const file = _selectedFiles[i];
+      const ext  = _imageExt(file);
+      if (!ext) throw new Error('Not an allowed image type: ' + file.name);
+      // Only letters, digits, _ and - are kept from the file name; the folder, number and extension are set here.
+      const base = (file.name || 'image').replace(/\.[^.]*$/, '').replace(/[^\w\-]+/g, '_').slice(0, 60) || 'image';
+      const path = `submissions/${uid}/${timestamp}/${i}_${base}.${ext}`;
+      const ref  = firebase.storage().ref(path);
+      // Name the type outright: some files arrive with none, and Storage only accepts the image types above.
+      await ref.put(file, { contentType: _has(MIME_EXT, file.type) ? file.type : IMAGE_MIME[ext] });
+      imagePaths.push(path);
     }
 
-    await Promise.all([
-      userRef.set({
-        ...wordUpdates,
-        userSeconds:  localUserSeconds,
-        totalTime:    fmt,
-        activityDays: activityDays.length ? FV.arrayUnion(...activityDays) : [],
-        hiddenWords:  [...hiddenWords],
-        lastSeen:     FV.serverTimestamp(),
-      }, { merge: true }),
-      summaryRef.set({
-        userSeconds: localUserSeconds,
-        totalTime:   fmt,
-      }, { merge: true }),
-    ]);
+    statusEl.textContent = 'Submitting…';
+    await _cfSubmitQuiz({ notes, imagePaths, displayName });
 
-    // Sync the flush baseline so flushTime() doesn't double-count imported seconds
-    lastFlushUserSeconds = localUserSeconds;
+    // Reset form
+    resetSubmitForm();
+    statusEl.style.color = 'var(--correct)';
+    statusEl.textContent = "Submitted! We'll review it soon.";
+    setTimeout(() => navigate(''), 2000);
   } catch (err) {
-    console.warn("pushImportToFirestore error:", err);
+    console.error("Submission error:", err);
+    statusEl.style.color = 'var(--wrong)';
+    // Show the server's own words for problems a person can fix (too many submissions, files too big…).
+    const fixable = err && ['RESOURCE_EXHAUSTED', 'INVALID_ARGUMENT', 'NOT_FOUND'].includes(err.code);
+    statusEl.textContent = fixable && err.message ? err.message : 'Something went wrong — please try again.';
+    btn.disabled = false;
   }
 }
 
-// Generates the code and writes it straight to the clipboard.
-function doCopy() {
-  const status = document.getElementById('savecode-copy-status');
-  try {
-    const code = generateSaveCode();
-    navigator.clipboard.writeText(code).then(() => {
-      status.textContent = '✓ Copied!';
-      status.className = 'savecode-status ok';
-      setTimeout(() => { status.className = 'savecode-status'; }, 2500);
-    }).catch(() => {
-      status.textContent = 'Clipboard blocked — try a different browser';
-      status.className = 'savecode-status err';
-    });
-  } catch(e) {
-    status.textContent = 'Failed to generate code';
-    status.className = 'savecode-status err';
-  }
+// ── Initial route ─────────────────────────────────────────────────────────────
+// Show list screen by default on page load; quiz opens when hash is set
+if (!window.location.hash || window.location.hash === '#') {
+  navigate('');
 }
 
-// Reads directly from clipboard and applies the code.
-function doPaste() {
-  const status = document.getElementById('savecode-import-status');
-  navigator.clipboard.readText().then(code => {
-    if (!code || !code.trim()) {
-      status.textContent = 'Clipboard is empty';
-      status.className = 'savecode-status err';
-      return;
-    }
-    try {
-      applySaveCode(code);
-      status.textContent = '✓ Data loaded!';
-      status.className = 'savecode-status ok';
-      setTimeout(closeSaveCode, 1200);
-    } catch(e) {
-      status.textContent = 'Invalid code — was it copied in full?';
-      status.className = 'savecode-status err';
-    }
-  }).catch(() => {
-    status.textContent = 'Clipboard access denied — check browser permissions';
-    status.className = 'savecode-status err';
-  });
-}
 // ─────────────────────────────────────────────────────────────────────────────
 // ── Expose only UI-triggered functions to window (onclick attributes need these)
-// pick, nextQ, ALL, and internal state are intentionally NOT exposed.
 const _uiFns = {
   setMode, setOrder, setDir, setTheme, startSession, openGlossary, closeGlossary,
-  openHeatmap, closeHeatmap, openSaveCode, closeSaveCode, doCopy, doPaste,
-  toggleSettings, selectLesson, drillSelected, hideSelected, restoreSelected,
-  clearSelection, saveHidden, toggleWordSelect, retakeWrong,
-  showAnswer, flipCard, flashNav, flashAssess, toggleFlashShuffle
+  openHeatmap, closeHeatmap, toggleSettings, selectLesson, drillSelected,
+  hideSelected, restoreSelected, clearSelection, saveHidden, toggleWordSelect,
+  retakeWrong, showAnswer, flipCard, flashNav, flashAssess, toggleFlashShuffle,
+  jumpToLesson, smoothScrollOverlay, loadNextQuestion, restoreWord,
+  navigate, closeLeaveModal, confirmLeave, removeFile, submitQuizForm, loadQuizAndStart, toggleNameField, resetSubmitForm, deleteSubmission
 };
 Object.assign(window, _uiFns);
-// pick and nextQ exposed minimally — but correct answer is internal-only
-window.pick   = pick;
-window.nextQ  = nextQ;
+window.pick  = pick;
+window.nextQ = nextQ;
 })();
 </script>
 </body>
