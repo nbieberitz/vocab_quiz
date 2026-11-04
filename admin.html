@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Quiz Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080f; --surface:#0b1120; --surface2:#111a2e;
+  --border:rgba(0,200,255,0.12); --border2:rgba(0,200,255,0.3);
+  --text:#e8eef8; --muted:#8a9bbd; --accent:#00d4ff; --accent2:#f5a623;
+  --correct:#00e5a0; --wrong:#ff5c7a;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 'DM Sans',system-ui,sans-serif}
+.wrap{max-width:46rem;margin:0 auto;padding:1.25rem 1rem 4rem}
+h1{font:400 2.1rem/1 'Bebas Neue',sans-serif;letter-spacing:.05em;margin:.2rem 0 .3rem}
+h1 em{font-style:normal;color:var(--accent)}
+h2{font:400 1.25rem/1.1 'Bebas Neue',sans-serif;letter-spacing:.06em;margin:0 0 .7rem;color:var(--accent)}
+p{margin:.35rem 0}
+a{color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 1rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem;margin:0 0 1rem}
+label,.lbl{display:block;font:500 11px/1.2 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 .35rem}
+input[type=text],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:.6rem .7rem;font:inherit}
+input[type=text]:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{min-height:19rem;resize:vertical;font:400 13px/1.55 'DM Mono',monospace}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.field{margin:0 0 .9rem}
+.hint{color:var(--muted);font-size:13px;margin:.3rem 0 0}
+.check{display:flex;gap:.55rem;align-items:flex-start;margin:.2rem 0 1rem}
+.check input{margin-top:.25rem;width:1rem;height:1rem;accent-color:var(--accent2)}
+.check span{font-size:14px}
+.check.flash{outline:2px solid var(--accent2);outline-offset:4px;border-radius:6px}
+button{font:500 14px/1 'DM Sans',sans-serif;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);padding:.75rem 1.1rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.55;cursor:default}
+button.primary{background:linear-gradient(135deg,var(--accent),rgba(0,180,220,.85));color:#001018;border-color:transparent;font-weight:600}
+.actions{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.msg{margin:.6rem 0 0;font-size:14px}
+.msg.err{color:var(--wrong)} .msg.ok{color:var(--correct)} .msg.warn{color:var(--accent2)}
+.who{display:flex;gap:.8rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.who b{word-break:break-all}
+details{margin:.2rem 0 .9rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.55rem .8rem}
+summary{cursor:pointer;font-weight:500}
+pre{margin:.6rem 0 0;padding:.7rem;background:var(--bg);border-radius:6px;overflow:auto;font:400 12.5px/1.55 'DM Mono',monospace;white-space:pre-wrap}
+.summary{display:flex;gap:1.4rem;flex-wrap:wrap;margin:.2rem 0 .6rem;font:500 12px/1.2 'DM Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.summary b{color:var(--text);font-size:15px}
+ul.issues{margin:.4rem 0 .6rem;padding-left:1.2rem}
+ul.issues li{margin:.2rem 0}
+ul.issues.err{color:var(--wrong)} ul.issues.warn{color:var(--accent2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:.3rem 0 .8rem}
+th,td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--border);vertical-align:top}
+th{font:500 11px/1.2 'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.num{width:3.2rem;color:var(--muted)}
+.sample{margin:.2rem 0 .8rem;padding:0;list-style:none}
+.sample li{padding:.45rem 0;border-bottom:1px solid var(--border)}
+.sample .w{font-weight:500;color:var(--accent)}
+.sample .ex{display:block;color:var(--muted);font-size:13px;font-style:italic}
+@media (max-width:34rem){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>QUIZ <em>ADMIN</em></h1>
+  <p class="sub">Publish a new vocabulary quiz. Only the owner's Google account can do this. <a href="index.html">← Back to the quiz</a></p>
+
+  <section class="card" id="loading"><p>Checking sign-in…</p></section>
+
+  <section class="card" id="signin" hidden>
+    <h2>Sign in</h2>
+    <p>Sign in with the owner's Google account to publish quizzes.</p>
+    <p class="actions"><button class="primary" id="signin-btn" type="button">Sign in with Google</button></p>
+    <p class="msg err" id="signin-msg" role="alert" hidden></p>
+  </section>
+
+  <section class="card" id="who" hidden>
+    <div class="who">
+      <span>Signed in as <b id="who-email"></b></span>
+      <button type="button" id="signout-btn">Sign out</button>
+    </div>
+    <p class="msg" id="who-msg" role="status" hidden></p>
+  </section>
+
+  <form class="card" id="editor" hidden novalidate autocomplete="off">
+    <h2>New quiz</h2>
+
+    <div class="field">
+      <label for="title">Title (shown on the quiz list)</label>
+      <input type="text" id="title" maxlength="80" placeholder="English Final Vocabulary — Unit 3">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="qid">Quiz ID (used in the web address)</label>
+        <input type="text" id="qid" maxlength="41" spellcheck="false" placeholder="english-unit-3">
+        <p class="hint">2–41 characters: lowercase letters, digits and dashes.</p>
+      </div>
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status">
+          <option value="published">Published — students see it</option>
+          <option value="draft">Draft — saved, hidden from students</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="desc">Description (optional)</label>
+      <input type="text" id="desc" maxlength="300">
+    </div>
+
+    <div class="field">
+      <label for="words">Words</label>
+      <details>
+        <summary>How to write the list</summary>
+        <p>One word per line: <b>word | definition | example sentence</b>. The example is optional. (Copying three columns from a spreadsheet also works.)</p>
+        <p>A line starting with <b>#</b> starts a new lesson and gives its name. Words before the first # line go in lesson 1.</p>
+        <p>A line starting with <b>~</b> lists words that are easy to mix up, separated by commas (2 to 8 words). The quiz uses them as wrong options and shows a warning.</p>
+        <pre># Language
+annotation | A critical or explanatory note | She left an annotation on nearly every page.
+parlance | A particular manner of speaking | In the parlance of the trading floor, a crash is "going off a cliff."
+patois | A regional dialect | The villagers spoke a patois visitors could barely follow.
+
+# Possibility
+contingent | Conditional; dependent on other things | His place was contingent on a background check.
+implausible | Difficult to believe | The alibi was implausible.
+
+~ parlance, patois</pre>
+        <p class="hint">Words can use letters, digits, spaces, hyphens and apostrophes. Every word and every definition must be different. A quiz needs at least 4 words.</p>
+      </details>
+      <textarea id="words" spellcheck="false" aria-describedby="summary"></textarea>
+    </div>
+
+    <div id="summary" class="summary" aria-live="polite"></div>
+    <ul class="issues err" id="problems" aria-live="polite"></ul>
+    <ul class="issues warn" id="warnings"></ul>
+    <div id="preview"></div>
+
+    <label class="check" id="replace-wrap"><input type="checkbox" id="replace"><span>Replace the quiz if it already exists. (Its old words are overwritten; students may see the old version for a few minutes.)</span></label>
+
+    <div class="actions">
+      <button class="primary" type="submit" id="publish-btn">Publish quiz</button>
+      <button type="button" id="clear-btn">Clear the form</button>
+    </div>
+    <p class="msg" id="publish-msg" role="status" hidden></p>
+    <ul class="issues err" id="publish-errors" hidden></ul>
+  </form>
+
+  <section class="card" id="done" hidden>
+    <h2>Done</h2>
+    <p id="done-text"></p>
+    <p id="done-note" class="hint" hidden></p>
+    <p class="actions"><a id="done-link" href="index.html"><button type="button" class="primary">Open the quiz</button></a>
+      <button type="button" id="again-btn">Publish another</button></p>
+  </section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function () {
+"use strict";
+
+// Same project as index.html. These settings only say which project to talk to; they are not secrets.
+const firebaseConfig = {
+  apiKey: "AIzaSyDadRa4vIG8aKeKSCm5wq5lCRm5G_c9N3U",
+  authDomain: "vocabulary-study-tool.firebaseapp.com",
+  projectId: "vocabulary-study-tool",
+  storageBucket: "vocabulary-study-tool.firebasestorage.app",
+  messagingSenderId: "913103862395",
+  appId: "1:913103862395:web:80676232783593673cc0de"
+};
+const FUNCTIONS_BASE = "https://us-central1-" + firebaseConfig.projectId + ".cloudfunctions.net/";
+
+// ─── Reading the list ────────────────────────────────────────────────────────
+// These limits are the same ones the server applies (functions/quizPublish.js). The server checks everything
+// again; the checks here only give quicker feedback, with line numbers.
+const WORD_RE    = /^[\p{L}\p{N}](?:[\p{L}\p{N} '’-]{0,58}[\p{L}\p{N}])?$/u;
+const CONTROL_RE = /[\u0000-\u001f\u007f]/;
+const ID_RE      = /^[a-z0-9][a-z0-9-]{1,40}$/;
+const MIN_WORDS = 4, MAX_WORDS = 2000, MAX_BYTES = 900 * 1000, MAX_PROBLEMS = 12;
+const clean = (s) => String(s).replace(/\s+/g, " ").trim();
+
+function slug(title) {
+  return clean(title).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+/, "").slice(0, 41).replace(/-+$/, "");
+}
+
+// Text → { words, lessonNames, lessons, confusedGroups, problems, warnings, empty }
+function parse(text) {
+  const out = { words: [], lessonNames: {}, lessons: [], confusedGroups: [], problems: [], warnings: [], empty: true };
+  const bad = (msg) => { out.problems.push(msg); };
+  const lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  let lesson = 0, pending = null, pendingLine = 0;
+  const wordAt = new Map(), defAt = new Map(), groupLines = [];
+
+  lines.forEach((raw, i) => {
+    const n = i + 1, line = raw.trim();
+    if (!line) return;
+    out.empty = false;
+
+    if (line[0] === "#") {                                   // # Lesson name
+      if (pending !== null) out.warnings.push(`Line ${pendingLine}: the lesson “${pending || "no name"}” has no words, so it was left out.`);
+      pending = clean(line.slice(1)); pendingLine = n;
+      if (pending.length > 60) bad(`Line ${n}: a lesson name can be at most 60 characters.`);
+      return;
+    }
+    if (line[0] === "~") {                                   // ~ word, word, word
+      groupLines.push({ n, list: line.slice(1).split(",").map(clean).filter(Boolean) });
+      return;
+    }
+
+    let parts = (raw.includes("\t") ? raw.split("\t") : raw.split("|")).map(clean);
+    while (parts.length > 3 && parts[parts.length - 1] === "") parts.pop();      // empty spreadsheet columns
+    if (parts.length > 3) return bad(`Line ${n}: too many parts. Write each word as: word | definition | example sentence (the | sign cannot be used inside them).`);
+    const w = parts[0], d = parts[1] || "", e = parts[2] || "";
+    const label = `Line ${n}` + (w ? ` (“${w.slice(0, 30)}”)` : "");
+    if (!w || w.length > 60 || !WORD_RE.test(w)) return bad(`${label}: a word can use letters, digits, spaces, hyphens and apostrophes, up to 60 characters.`);
+    if (!d) return bad(`${label}: add the definition after the word, like this: word | definition | example`);
+    if (d.length > 400 || CONTROL_RE.test(d)) return bad(`${label}: the definition can be at most 400 characters.`);
+    if (e.length > 600 || CONTROL_RE.test(e)) return bad(`${label}: the example can be at most 600 characters.`);
+    const wk = w.toLowerCase(), dk = d.toLowerCase();
+    if (wordAt.has(wk)) return bad(`${label}: this word is already on line ${wordAt.get(wk)}.`);
+    if (defAt.has(dk))  return bad(`${label}: this definition is the same as the one on line ${defAt.get(dk)}.`);
+    wordAt.set(wk, n); defAt.set(dk, n);
+
+    if (lesson === 0 || pending !== null) {                  // the first word of a lesson gives the lesson its number
+      lesson += 1;
+      if (pending) out.lessonNames[lesson] = pending;
+      pending = null;
+    }
+    out.words.push({ w, d, l: lesson, e, line: n });
+  });
+  if (pending !== null) out.warnings.push(`Line ${pendingLine}: the lesson “${pending || "no name"}” has no words, so it was left out.`);
+
+  const spelled = new Map(out.words.map((x) => [x.w.toLowerCase(), x.w]));
+  groupLines.forEach(({ n, list }) => {
+    const names = [...new Set(list.map((w) => spelled.get(w.toLowerCase()) || w))];
+    if (names.length < 2 || names.length > 8) return bad(`Line ${n}: a “commonly confused” group needs 2 to 8 different words, separated by commas.`);
+    const missing = names.filter((w) => !spelled.has(w.toLowerCase()));
+    if (missing.length) return bad(`Line ${n}: not in the word list: ${missing.slice(0, 3).join(", ")}.`);
+    out.confusedGroups.push(names);
+  });
+
+  if (out.words.length && out.words.length < MIN_WORDS && !out.problems.length) bad(`A quiz needs at least ${MIN_WORDS} words (each question shows 4 options). This list has ${out.words.length}.`);
+  if (out.words.length > MAX_WORDS) bad(`A quiz can have at most ${MAX_WORDS} words. This list has ${out.words.length}.`);
+  if (!out.problems.length && new TextEncoder().encode(JSON.stringify(out.words)).length > MAX_BYTES) bad("The word list is too big for one quiz. Split it into two quizzes.");
+
+  const counts = new Map();
+  out.words.forEach((x) => counts.set(x.l, (counts.get(x.l) || 0) + 1));
+  out.lessons = [...counts.keys()].sort((a, b) => a - b).map((no) => ({ no, name: out.lessonNames[no] || "", count: counts.get(no) }));
+  return out;
+}
+
+// Exposed so the parser can be tested on its own.
+window.QuizText = { parse, slug, ID_RE };
+
+// ─── The page ────────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const show = (el, on) => { el.hidden = !on; };
+function say(el, text, kind) { el.textContent = text; el.className = "msg" + (kind ? " " + kind : ""); show(el, !!text); }
+function list(ul, items) { ul.replaceChildren(...items.map((t) => { const li = document.createElement("li"); li.textContent = t; return li; })); show(ul, items.length > 0); }
+
+// A named app of its own, so signing in here never changes who the quiz page thinks you are.
+const app  = firebase.initializeApp(firebaseConfig, "admin");
+const auth = app.auth();
+
+async function call(name, data) {
+  const user = auth.currentUser;
+  const token = user ? await user.getIdToken() : null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 60000);
+  try {
+    const res = await fetch(FUNCTIONS_BASE + name, {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, token ? { Authorization: "Bearer " + token } : {}),
+      body: JSON.stringify({ data }),
+      signal: ctrl.signal
+    });
+    let json = null;
+    try { json = await res.json(); } catch (e) { /* not JSON */ }
+    if (json && json.error) { const err = new Error(json.error.message || "Error"); err.code = json.error.status; throw err; }
+    if (!res.ok || !json) { const err = new Error("The server answered with an error (HTTP " + res.status + ")."); err.code = "HTTP_" + res.status; throw err; }
+    return json.result;
+  } finally { clearTimeout(timer); }
+}
+
+// ─── Signing in ──────────────────────────────────────────────────────────────
+function signInProblem(err) {
+  const host = window.location.hostname || "this website";
+  switch (err && err.code) {
+    case "auth/popup-blocked":            return "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.";
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":  return "";
+    case "auth/unauthorized-domain":      return `This website address (${host}) is not on Firebase's list of allowed sign-in domains. In the Firebase console go to Authentication → Settings → Authorized domains, add ${host}, and try again.`;
+    case "auth/operation-not-allowed":    return "Google sign-in is not turned on yet. In the Firebase console go to Authentication → Sign-in method → Google, turn it on, and try again.";
+    case "auth/network-request-failed":   return "Could not reach Google. Check your connection and try again.";
+    default: return "Sign-in did not work" + (err && err.code ? " (" + err.code + ")" : "") + ".";
+  }
+}
+
+$("signin-btn").addEventListener("click", async () => {
+  say($("signin-msg"), "");
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  $("signin-btn").disabled = true;
+  try { await auth.signInWithPopup(provider); }
+  catch (err) { say($("signin-msg"), signInProblem(err), "err"); }
+  finally { $("signin-btn").disabled = false; }
+});
+$("signout-btn").addEventListener("click", () => { auth.signOut(); });
+
+let checkingFor = null;                       // the user whose right to publish is being checked
+auth.onAuthStateChanged(async (user) => {
+  show($("loading"), false);
+  show($("done"), false);
+  if (!user) {
+    checkingFor = null;
+    show($("signin"), true); show($("who"), false); show($("editor"), false);
+    return;
+  }
+  show($("signin"), false); show($("who"), true);
+  $("who-email").textContent = user.email || "(no email)";
+  show($("editor"), false);
+  say($("who-msg"), "Checking that this account can publish…", "");
+  checkingFor = user.uid;
+  // Asking to publish nothing answers "invalid input" for the owner and "not allowed" for anyone else, and changes nothing.
+  let allowed = true, note = "";
+  try { await call("publishQuiz", {}); }
+  catch (err) {
+    if (err.code === "PERMISSION_DENIED") allowed = false;
+    else if (err.code === "UNAUTHENTICATED") { allowed = false; note = "Your sign-in is not accepted. Sign out and sign in again."; }
+    else if (err.code !== "INVALID_ARGUMENT") note = "Could not check this account just now. You can still try to publish.";
+  }
+  if (checkingFor !== user.uid) return;       // signed out or switched account meanwhile
+  if (!allowed) {
+    say($("who-msg"), note || "This Google account is not the quiz owner, so it cannot publish. Sign out and choose the owner's account.", "err");
+    return;
+  }
+  say($("who-msg"), note, note ? "warn" : "");
+  show($("editor"), true);
+});
+
+// ─── The form ────────────────────────────────────────────────────────────────
+let idEdited = false, parsed = parse("");
+
+$("title").addEventListener("input", () => { if (!idEdited) $("qid").value = slug($("title").value); });
+$("qid").addEventListener("input", () => { idEdited = $("qid").value !== ""; });
+
+function refresh() {
+  parsed = parse($("words").value);
+  const p = parsed;
+  const sum = $("summary");
+  sum.replaceChildren();
+  if (!p.empty) {
+    for (const [n, label] of [[p.words.length, "words"], [p.lessons.length, p.lessons.length === 1 ? "lesson" : "lessons"], [p.confusedGroups.length, p.confusedGroups.length === 1 ? "confused group" : "confused groups"]]) {
+      const s = document.createElement("span"); const b = document.createElement("b");
+      b.textContent = String(n); s.append(b, " " + label); sum.append(s, " ");
+    }
+  }
+  const shown = p.problems.slice(0, MAX_PROBLEMS);
+  if (p.problems.length > MAX_PROBLEMS) shown.push(`…and ${p.problems.length - MAX_PROBLEMS} more.`);
+  list($("problems"), shown);
+  list($("warnings"), p.warnings);
+  renderPreview(p);
+}
+
+function renderPreview(p) {
+  const box = $("preview");
+  box.replaceChildren();
+  if (!p.words.length) return;
+  const table = document.createElement("table");
+  const head = document.createElement("tr");
+  for (const t of ["Lesson", "Name", "Words"]) { const th = document.createElement("th"); th.textContent = t; head.append(th); }
+  table.append(head);
+  for (const l of p.lessons.slice(0, 40)) {
+    const tr = document.createElement("tr");
+    const a = document.createElement("td"); a.className = "num"; a.textContent = String(l.no);
+    const b = document.createElement("td"); b.textContent = l.name || "Lesson " + l.no;
+    const c = document.createElement("td"); c.textContent = String(l.count);
+    tr.append(a, b, c); table.append(tr);
+  }
+  box.append(table);
+  const ul = document.createElement("ul"); ul.className = "sample";
+  for (const x of p.words.slice(0, 4)) {
+    const li = document.createElement("li");
+    const w = document.createElement("span"); w.className = "w"; w.textContent = x.w;
+    li.append(w, " — " + x.d);
+    if (x.e) { const e = document.createElement("span"); e.className = "ex"; e.textContent = x.e; li.append(e); }
+    ul.append(li);
+  }
+  if (p.words.length > 4) { const li = document.createElement("li"); li.textContent = `…and ${p.words.length - 4} more.`; ul.append(li); }
+  box.append(ul);
+}
+$("words").addEventListener("input", refresh);
+
+function formProblems() {
+  const issues = [];
+  const title = clean($("title").value), id = $("qid").value.trim();
+  if (!title) issues.push("Write a title.");
+  else if (title.length > 80) issues.push("The title can be at most 80 characters.");
+  if (!ID_RE.test(id)) issues.push("The quiz ID must be 2 to 41 characters: lowercase letters, digits and dashes (for example english-unit-3).");
+  if (clean($("desc").value).length > 300) issues.push("The description can be at most 300 characters.");
+  if (parsed.empty) issues.push("Paste the word list.");
+  issues.push(...parsed.problems.slice(0, MAX_PROBLEMS));
+  return issues;
+}
+
+function problemText(err) {
+  switch (err && err.code) {
+    case "PERMISSION_DENIED": return ["This Google account is not allowed to publish. Sign out and use the owner's account."];
+    case "UNAUTHENTICATED":   return ["Your sign-in is not accepted. Sign out and sign in again."];
+    case "ALREADY_EXISTS":    return [err.message];
+    case "INVALID_ARGUMENT":  return String(err.message).split("\n").filter(Boolean);
+    default:
+      if (err && err.name === "AbortError") return ["The server took too long to answer. Try again in a moment."];
+      if (err && err.name === "TypeError")  return ["Could not reach the server. Check your connection and try again."];
+      return [(err && err.message) || "Something went wrong.", ...(err && err.code ? ["(" + err.code + ")"] : [])];
+  }
+}
+
+$("editor").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  say($("publish-msg"), ""); list($("publish-errors"), []);
+  const issues = formProblems();
+  if (issues.length) { say($("publish-msg"), "Fix these first:", "err"); list($("publish-errors"), issues); return; }
+
+  const id = $("qid").value.trim(), title = clean($("title").value), overwrite = $("replace").checked;
+  if (overwrite && !window.confirm(`If a quiz with the ID “${id}” already exists, its words will be replaced by this list. Continue?`)) return;
+
+  const data = {
+    id, title, description: clean($("desc").value), status: $("status").value, overwrite,
+    lessonNames: parsed.lessonNames,
+    words: parsed.words.map((x) => ({ w: x.w, d: x.d, l: x.l, e: x.e })),
+    confusedGroups: parsed.confusedGroups
+  };
+  $("publish-btn").disabled = true;
+  say($("publish-msg"), "Publishing…", "");
+  try {
+    const res = await call("publishQuiz", data);
+    show($("editor"), false); show($("done"), true);
+    const live = res.status === "published";
+    $("done-text").textContent = `“${title}” is ${live ? "published" : "saved as a draft"}: ${res.wordCount} words, version ${res.version}.`;
+    $("done-link").href = "index.html#quiz-" + res.id;
+    $("done-link").hidden = !live;
+    const note = $("done-note");
+    note.textContent = res.version > 1 ? "Students who already have the quiz open may see the old version for a few minutes." : "";
+    show(note, res.version > 1);
+    say($("publish-msg"), "");
+  } catch (err) {
+    say($("publish-msg"), "The quiz was not published:", "err");
+    list($("publish-errors"), problemText(err));
+    if (err && err.code === "ALREADY_EXISTS") {
+      const wrap = $("replace-wrap"); wrap.classList.add("flash"); wrap.scrollIntoView({ block: "center" });
+      setTimeout(() => wrap.classList.remove("flash"), 2500);
+    }
+  } finally { $("publish-btn").disabled = false; }
+});
+
+function clearForm() {
+  for (const id of ["title", "qid", "desc", "words"]) $(id).value = "";
+  $("status").value = "published"; $("replace").checked = false; idEdited = false;
+  say($("publish-msg"), ""); list($("publish-errors"), []);
+  refresh();
+}
+$("clear-btn").addEventListener("click", clearForm);
+$("again-btn").addEventListener("click", () => { clearForm(); show($("done"), false); show($("editor"), true); });
+refresh();
+})();
+</script>
+</body>
+</html>
